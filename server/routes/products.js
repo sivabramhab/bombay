@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const { auth, authorize } = require('../middleware/auth');
 const Product = require('../models/Product');
@@ -44,22 +45,36 @@ router.get('/', async (req, res) => {
       .sort(sort)
       .lean();
 
-    // Get all unique sellerIds
-    const sellerIds = [...new Set(productsRaw.map(p => p.sellerId?.toString()).filter(Boolean))];
+    // Get all unique sellerIds (handle both ObjectId and string)
+    const sellerIds = productsRaw
+      .map(p => {
+        if (!p.sellerId) return null;
+        // Handle both ObjectId objects and string IDs
+        return p.sellerId.toString ? p.sellerId.toString() : String(p.sellerId);
+      })
+      .filter(Boolean);
     
     // Fetch all sellers at once
     const Seller = require('../models/Seller');
-    const sellers = await Seller.find({ _id: { $in: sellerIds } })
+    const sellers = sellerIds.length > 0 ? await Seller.find({ 
+      _id: { $in: sellerIds.map(id => mongoose.Types.ObjectId(id)) } 
+    })
       .select('businessName rating')
-      .lean();
+      .lean() : [];
     
-    // Create a map for quick lookup
-    const sellerMap = new Map(sellers.map(s => [s._id.toString(), s]));
+    // Create a map for quick lookup (use both string and ObjectId keys)
+    const sellerMap = new Map();
+    sellers.forEach(s => {
+      const idStr = s._id.toString();
+      sellerMap.set(idStr, s);
+      sellerMap.set(s._id.toString(), s);
+    });
     
     // Attach seller info to products
     const products = productsRaw.map(product => {
       if (product.sellerId) {
-        const seller = sellerMap.get(product.sellerId.toString());
+        const sellerIdStr = product.sellerId.toString ? product.sellerId.toString() : String(product.sellerId);
+        const seller = sellerMap.get(sellerIdStr);
         product.sellerId = seller || null;
       } else {
         product.sellerId = null;
