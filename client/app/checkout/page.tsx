@@ -25,7 +25,7 @@ interface Address {
   isDefault?: boolean;
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { items, getTotalPrice, clearCart } = useCartStore();
