@@ -48,7 +48,10 @@ router.get('/', async (req, res) => {
     // Get all unique sellerIds (handle both ObjectId and string)
     const sellerIds = productsRaw
       .map(p => {
-        if (!p.sellerId) return null;
+        if (!p.sellerId) {
+          console.log('Product with null sellerId:', p.name);
+          return null;
+        }
         // Handle both ObjectId objects and string IDs - with lean(), sellerId might be ObjectId or string
         if (typeof p.sellerId === 'object' && p.sellerId.toString) {
           return p.sellerId.toString();
@@ -56,6 +59,8 @@ router.get('/', async (req, res) => {
         return String(p.sellerId);
       })
       .filter(Boolean);
+    
+    console.log('Found sellerIds:', sellerIds.length, sellerIds.slice(0, 3));
     
     // Fetch all sellers at once - convert string IDs to ObjectId for query
     const sellers = sellerIds.length > 0 ? await Seller.find({ 
@@ -71,6 +76,11 @@ router.get('/', async (req, res) => {
     })
       .select('businessName rating')
       .lean() : [];
+    
+    console.log('Found sellers:', sellers.length);
+    if (sellers.length > 0) {
+      console.log('First seller:', sellers[0].businessName, sellers[0]._id.toString());
+    }
     
     // Create a map for quick lookup - use string representation as key
     const sellerMap = new Map();
@@ -95,6 +105,9 @@ router.get('/', async (req, res) => {
         }
         
         const seller = sellerMap.get(sellerIdStr);
+        if (!seller) {
+          console.log('Seller not found for product:', product.name, 'sellerId:', sellerIdStr);
+        }
         product.sellerId = seller || null;
       } else {
         product.sellerId = null;
