@@ -55,9 +55,8 @@ router.get('/', async (req, res) => {
       .filter(Boolean);
     
     // Fetch all sellers at once
-    const Seller = require('../models/Seller');
     const sellers = sellerIds.length > 0 ? await Seller.find({ 
-      _id: { $in: sellerIds.map(id => mongoose.Types.ObjectId(id)) } 
+      _id: { $in: sellerIds.map(id => new mongoose.Types.ObjectId(id)) } 
     })
       .select('businessName rating')
       .lean() : [];
