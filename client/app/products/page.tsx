@@ -176,13 +176,13 @@ export default function ProductsPage() {
                     <input
                       type="checkbox"
                       checked={filters.allowBargaining === 'true'}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setFilters({
                           ...filters,
                           allowBargaining: e.target.checked ? 'true' : '',
                         });
                         setPage(1);
-                      }
+                      }}
                       className="mr-2"
                     />
                     <span className="text-sm text-gray-700">Bargaining Available</span>
