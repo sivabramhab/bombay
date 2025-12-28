@@ -1,0 +1,73 @@
+================================================================================
+                    DEPLOYMENT EXECUTION COMMANDS
+================================================================================
+
+EC2 INSTANCE: ec2-54-236-21-8.compute-1.amazonaws.com
+GITHUB REPO:  https://github.com/sivabramhab/bombay.git
+================================================================================
+
+STEP 1: Connect to EC2
+----------------------
+ssh -i your-key.pem ubuntu@ec2-54-236-21-8.compute-1.amazonaws.com
+
+OR (if using password):
+ssh ubuntu@ec2-54-236-21-8.compute-1.amazonaws.com
+
+
+STEP 2: Run ONE Command (Deploys Everything)
+---------------------------------------------
+curl -fsSL https://raw.githubusercontent.com/sivabramhab/bombay/main/deploy-and-seed.sh | bash
+
+
+ALTERNATIVE: Manual Step-by-Step
+----------------------------------
+cd ~
+wget https://raw.githubusercontent.com/sivabramhab/bombay/main/deploy-and-seed.sh
+chmod +x deploy-and-seed.sh
+./deploy-and-seed.sh
+
+
+STEP 3: After Deployment Completes
+-----------------------------------
+Open browser: http://ec2-54-236-21-8.compute-1.amazonaws.com:3000
+
+
+VERIFY DEPLOYMENT
+-----------------
+pm2 list                    # Check services are running
+mongosh marketplace --eval "db.products.count()"  # Verify products seeded
+curl http://localhost:5000/api  # Test server
+curl http://localhost:3000     # Test client
+
+
+WHAT GETS DEPLOYED
+------------------
+✓ Node.js 20.x
+✓ MongoDB 7.0
+✓ PM2 Process Manager
+✓ Code from GitHub (bombay repository)
+✓ All dependencies installed
+✓ Next.js application built
+✓ Server started (port 5000)
+✓ Client started (port 3000)
+✓ Database seeded with products
+✓ Environment variables configured
+
+
+APPLICATION URLS
+----------------
+Frontend: http://ec2-54-236-21-8.compute-1.amazonaws.com:3000
+API:      http://ec2-54-236-21-8.compute-1.amazonaws.com:5000
+Products: http://ec2-54-236-21-8.compute-1.amazonaws.com:5000/api/products
+
+
+TROUBLESHOOTING
+---------------
+If SSH fails: Check Security Group allows port 22
+If script fails: Run with verbose: bash -x deploy-and-seed.sh
+If ports in use: pm2 delete all (then rerun deployment)
+If MongoDB fails: sudo systemctl restart mongod
+
+
+================================================================================
+
