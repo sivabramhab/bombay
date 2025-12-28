@@ -180,8 +180,8 @@ export default function ProductsPage() {
                         setFilters({
                           ...filters,
                           allowBargaining: e.target.checked ? 'true' : '',
-                          page: 1,
-                        })
+                        });
+                        setPage(1);
                       }
                       className="mr-2"
                     />
@@ -198,7 +198,8 @@ export default function ProductsPage() {
                   value={`${filters.sortBy}-${filters.sortOrder}`}
                   onChange={(e) => {
                     const [sortBy, sortOrder] = e.target.value.split('-');
-                    setFilters({ ...filters, sortBy, sortOrder, page: 1 });
+                    setFilters({ ...filters, sortBy, sortOrder });
+                    setPage(1);
                   }}
                 >
                   <option value="createdAt-desc">Newest First</option>
