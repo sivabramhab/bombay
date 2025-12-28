@@ -38,10 +38,15 @@ router.get('/', async (req, res) => {
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const products = await Product.find(query)
-      .populate('sellerId', 'businessName rating')
+      .populate({
+        path: 'sellerId',
+        select: 'businessName rating',
+        options: { lean: true }
+      })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .sort(sort);
+      .sort(sort)
+      .lean();
 
     const total = await Product.countDocuments(query);
 
