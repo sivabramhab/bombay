@@ -37,25 +37,34 @@ router.get('/', async (req, res) => {
     const sort = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    let products = await Product.find(query)
-      .populate('sellerId', 'businessName rating')
+    // Fetch products and manually populate sellerId since Mongoose populate isn't working
+    const productsRaw = await Product.find(query)
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .sort(sort);
+      .sort(sort)
+      .lean();
 
-    // Convert to plain objects, preserving populated sellerId
-    products = products.map(product => {
-      const productObj = product.toObject ? product.toObject() : product;
-      // If sellerId was populated, it should be an object with businessName
-      // If not, it might be null or an ObjectId string
-      if (productObj.sellerId && typeof productObj.sellerId === 'object' && !productObj.sellerId.businessName) {
-        // sellerId is an ObjectId but wasn't populated - set to null
-        productObj.sellerId = null;
-      } else if (productObj.sellerId && typeof productObj.sellerId !== 'object') {
-        // sellerId is a string or other type - set to null
-        productObj.sellerId = null;
+    // Get all unique sellerIds
+    const sellerIds = [...new Set(productsRaw.map(p => p.sellerId?.toString()).filter(Boolean))];
+    
+    // Fetch all sellers at once
+    const Seller = require('../models/Seller');
+    const sellers = await Seller.find({ _id: { $in: sellerIds } })
+      .select('businessName rating')
+      .lean();
+    
+    // Create a map for quick lookup
+    const sellerMap = new Map(sellers.map(s => [s._id.toString(), s]));
+    
+    // Attach seller info to products
+    const products = productsRaw.map(product => {
+      if (product.sellerId) {
+        const seller = sellerMap.get(product.sellerId.toString());
+        product.sellerId = seller || null;
+      } else {
+        product.sellerId = null;
       }
-      return productObj;
+      return product;
     });
 
     const total = await Product.countDocuments(query);
