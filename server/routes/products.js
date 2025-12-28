@@ -37,20 +37,22 @@ router.get('/', async (req, res) => {
     const sort = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    let products = await Product.find(query)
-      .populate('sellerId', 'businessName rating')
+    const products = await Product.find(query)
+      .populate({
+        path: 'sellerId',
+        select: 'businessName rating',
+        model: 'Seller'
+      })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .sort(sort);
-
-    // Convert to plain objects and handle null sellerId
-    products = products.map(product => {
-      const productObj = product.toObject ? product.toObject() : product;
-      // Ensure sellerId is properly formatted
-      if (!productObj.sellerId) {
-        productObj.sellerId = null;
+      .sort(sort)
+      .lean();
+    
+    // Ensure sellerId is null if populate failed (not an object)
+    products.forEach(product => {
+      if (product.sellerId && typeof product.sellerId !== 'object') {
+        product.sellerId = null;
       }
-      return productObj;
     });
 
     const total = await Product.countDocuments(query);
