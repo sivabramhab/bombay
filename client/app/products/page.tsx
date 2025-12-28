@@ -128,7 +128,10 @@ export default function ProductsPage() {
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                   value={filters.category}
-                  onChange={(e) => setFilters({ ...filters, category: e.target.value, page: 1 })}
+                  onChange={(e) => {
+                    setFilters({ ...filters, category: e.target.value });
+                    setPage(1);
+                  }}
                 >
                   {categories.map((cat) => (
                     <option key={cat.value} value={cat.value}>
@@ -147,14 +150,20 @@ export default function ProductsPage() {
                     placeholder="Min"
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={filters.minPrice}
-                    onChange={(e) => setFilters({ ...filters, minPrice: e.target.value, page: 1 })}
+                    onChange={(e) => {
+                      setFilters({ ...filters, minPrice: e.target.value });
+                      setPage(1);
+                    }}
                   />
                   <input
                     type="number"
                     placeholder="Max"
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={filters.maxPrice}
-                    onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value, page: 1 })}
+                    onChange={(e) => {
+                      setFilters({ ...filters, maxPrice: e.target.value });
+                      setPage(1);
+                    }}
                   />
                 </div>
               </div>
