@@ -49,30 +49,51 @@ router.get('/', async (req, res) => {
     const sellerIds = productsRaw
       .map(p => {
         if (!p.sellerId) return null;
-        // Handle both ObjectId objects and string IDs
-        return p.sellerId.toString ? p.sellerId.toString() : String(p.sellerId);
+        // Handle both ObjectId objects and string IDs - with lean(), sellerId might be ObjectId or string
+        if (typeof p.sellerId === 'object' && p.sellerId.toString) {
+          return p.sellerId.toString();
+        }
+        return String(p.sellerId);
       })
       .filter(Boolean);
     
-    // Fetch all sellers at once
+    // Fetch all sellers at once - convert string IDs to ObjectId for query
     const sellers = sellerIds.length > 0 ? await Seller.find({ 
-      _id: { $in: sellerIds.map(id => new mongoose.Types.ObjectId(id)) } 
+      _id: { $in: sellerIds.map(id => {
+        try {
+          // Try to create ObjectId from string
+          return typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id;
+        } catch (e) {
+          console.error('Error converting sellerId to ObjectId:', id, e);
+          return null;
+        }
+      }).filter(Boolean) } 
     })
       .select('businessName rating')
       .lean() : [];
     
-    // Create a map for quick lookup (use both string and ObjectId keys)
+    // Create a map for quick lookup - use string representation as key
     const sellerMap = new Map();
     sellers.forEach(s => {
       const idStr = s._id.toString();
-      sellerMap.set(idStr, s);
-      sellerMap.set(s._id.toString(), s);
+      sellerMap.set(idStr, {
+        _id: s._id,
+        businessName: s.businessName,
+        rating: s.rating || { average: 0, count: 0 }
+      });
     });
     
     // Attach seller info to products
     const products = productsRaw.map(product => {
       if (product.sellerId) {
-        const sellerIdStr = product.sellerId.toString ? product.sellerId.toString() : String(product.sellerId);
+        // Convert sellerId to string for lookup
+        let sellerIdStr;
+        if (typeof product.sellerId === 'object' && product.sellerId.toString) {
+          sellerIdStr = product.sellerId.toString();
+        } else {
+          sellerIdStr = String(product.sellerId);
+        }
+        
         const seller = sellerMap.get(sellerIdStr);
         product.sellerId = seller || null;
       } else {
