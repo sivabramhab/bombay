@@ -1,6 +1,7 @@
 import api from './api';
 
 export interface User {
+  isSeller?: boolean;
   id: string;
   name: string;
   email: string;
