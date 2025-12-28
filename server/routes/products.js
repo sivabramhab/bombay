@@ -48,10 +48,7 @@ router.get('/', async (req, res) => {
     // Get all unique sellerIds (handle both ObjectId and string)
     const sellerIds = productsRaw
       .map(p => {
-        if (!p.sellerId) {
-          console.log('Product with null sellerId:', p.name);
-          return null;
-        }
+        if (!p.sellerId) return null;
         // Handle both ObjectId objects and string IDs - with lean(), sellerId might be ObjectId or string
         if (typeof p.sellerId === 'object' && p.sellerId.toString) {
           return p.sellerId.toString();
@@ -59,8 +56,6 @@ router.get('/', async (req, res) => {
         return String(p.sellerId);
       })
       .filter(Boolean);
-    
-    console.log('Found sellerIds:', sellerIds.length, sellerIds.slice(0, 3));
     
     // Fetch all sellers and match manually (since findById isn't working)
     let sellers = [];
@@ -76,8 +71,6 @@ router.get('/', async (req, res) => {
           const sellerIdStr = s._id.toString();
           return sellerIds.includes(sellerIdStr);
         });
-        
-        console.log(`Matched ${sellers.length} sellers from ${allSellers.length} total sellers`);
       } catch (e) {
         console.error('Error fetching sellers:', e);
       }
@@ -111,9 +104,6 @@ router.get('/', async (req, res) => {
         }
         
         const seller = sellerMap.get(sellerIdStr);
-        if (!seller) {
-          console.log('Seller not found for product:', product.name, 'sellerId:', sellerIdStr);
-        }
         product.sellerId = seller || null;
       } else {
         product.sellerId = null;
