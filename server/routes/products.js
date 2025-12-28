@@ -62,39 +62,22 @@ router.get('/', async (req, res) => {
     
     console.log('Found sellerIds:', sellerIds.length, sellerIds.slice(0, 3));
     
-    // Fetch all sellers at once - try multiple query methods
+    // Fetch all sellers and match manually (since findById isn't working)
     let sellers = [];
     if (sellerIds.length > 0) {
       try {
-        // First try with ObjectId conversion
-        const objectIds = sellerIds.map(id => {
-          try {
-            return typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id;
-          } catch (e) {
-            console.error('Error converting sellerId to ObjectId:', id, e);
-            return null;
-          }
-        }).filter(Boolean);
-        
-        sellers = await Seller.find({ _id: { $in: objectIds } })
-          .select('businessName rating')
+        // Get all sellers and filter manually
+        const allSellers = await Seller.find()
+          .select('businessName rating _id')
           .lean();
         
-        // If no results, try with string IDs
-        if (sellers.length === 0) {
-          console.log('Retrying with string IDs...');
-          sellers = await Seller.find({ _id: { $in: sellerIds } })
-            .select('businessName rating')
-            .lean();
-        }
+        // Match sellers by comparing string representations of _id
+        sellers = allSellers.filter(s => {
+          const sellerIdStr = s._id.toString();
+          return sellerIds.includes(sellerIdStr);
+        });
         
-        // If still no results, try findById for each
-        if (sellers.length === 0) {
-          console.log('Retrying with findById for each sellerId...');
-          const sellersPromises = sellerIds.map(id => Seller.findById(id).select('businessName rating').lean());
-          const sellersResults = await Promise.all(sellersPromises);
-          sellers = sellersResults.filter(Boolean);
-        }
+        console.log(`Matched ${sellers.length} sellers from ${allSellers.length} total sellers`);
       } catch (e) {
         console.error('Error fetching sellers:', e);
       }
