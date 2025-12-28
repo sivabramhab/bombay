@@ -1,10 +1,31 @@
 import axios from 'axios';
 
 // Use EC2 server URL if available, otherwise localhost for development
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? `http://${window.location.hostname}:5000/api`
-    : 'http://localhost:5000/api');
+const getAPIUrl = () => {
+  // First check environment variable
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // If on EC2 domain, always use HTTPS (via Nginx reverse proxy)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname.includes('ec2-') || hostname.includes('compute-1.amazonaws.com')) {
+      return `https://${hostname}/api`;
+    }
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      // For other domains, use HTTPS if page is HTTPS, otherwise HTTP
+      return window.location.protocol === 'https:' 
+        ? `https://${hostname}/api`
+        : `http://${hostname}:5000/api`;
+    }
+  }
+  
+  // Default to localhost for development
+  return 'http://localhost:5000/api';
+};
+
+const API_URL = getAPIUrl();
 
 console.log('API URL:', API_URL);
 
