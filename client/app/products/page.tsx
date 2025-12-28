@@ -70,11 +70,22 @@ function ProductsContent() {
       params.append('page', page.toString());
       params.append('limit', '20');
 
+      console.log('Fetching products with params:', params.toString());
       const response = await api.get(`/products?${params.toString()}`);
+      console.log('Products response:', response.data);
       setProducts(response.data.products || []);
       setTotal(response.data.total || 0);
-    } catch (error) {
+      
+      if (!response.data.products || response.data.products.length === 0) {
+        console.warn('No products returned from API');
+      }
+    } catch (error: any) {
       console.error('Error fetching products:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      // Set empty arrays on error
+      setProducts([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
