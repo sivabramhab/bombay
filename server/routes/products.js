@@ -37,22 +37,25 @@ router.get('/', async (req, res) => {
     const sort = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    const products = await Product.find(query)
-      .populate({
-        path: 'sellerId',
-        select: 'businessName rating',
-        model: 'Seller'
-      })
+    let products = await Product.find(query)
+      .populate('sellerId', 'businessName rating')
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .sort(sort)
-      .lean();
-    
-    // Ensure sellerId is null if populate failed (not an object)
-    products.forEach(product => {
-      if (product.sellerId && typeof product.sellerId !== 'object') {
-        product.sellerId = null;
+      .sort(sort);
+
+    // Convert to plain objects, preserving populated sellerId
+    products = products.map(product => {
+      const productObj = product.toObject ? product.toObject() : product;
+      // If sellerId was populated, it should be an object with businessName
+      // If not, it might be null or an ObjectId string
+      if (productObj.sellerId && typeof productObj.sellerId === 'object' && !productObj.sellerId.businessName) {
+        // sellerId is an ObjectId but wasn't populated - set to null
+        productObj.sellerId = null;
+      } else if (productObj.sellerId && typeof productObj.sellerId !== 'object') {
+        // sellerId is a string or other type - set to null
+        productObj.sellerId = null;
       }
+      return productObj;
     });
 
     const total = await Product.countDocuments(query);
