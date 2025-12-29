@@ -1388,7 +1388,7 @@ export default function AddProductPage() {
                             </button>
                           )}
                         </div>
-                      ) : (
+                      ) : gstDocumentPreview ? (
                         <div style={{ position: 'relative', display: 'inline-block' }}>
                           <img
                             src={gstDocumentPreview}
