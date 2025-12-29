@@ -29,11 +29,13 @@ export default function RegisterPage() {
       const response: any = await register({ ...formData, userType: formData.userType });
       console.log('Registration response:', response);
       
-      if (!response || !response.success) {
-        throw new Error(response?.message || 'Registration failed - no response received');
+      // Check if response indicates success (success field can be true, undefined, or missing, but not false)
+      if (!response || response.success === false || !response.token || !response.user) {
+        const errorMessage = response?.message || 'Registration failed - invalid response';
+        throw new Error(errorMessage);
       }
       
-      toast.success('Registration successful!');
+      toast.success(response.message || 'Registration successful!');
       
       // Get user data from registration response
       const currentUser = response?.user || useAuthStore.getState().user;
