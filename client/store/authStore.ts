@@ -5,7 +5,7 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<any>;
   register: (data: { email: string; password: string; name: string; mobile: string; userType?: string }) => Promise<void>;
   verifyOTP: (mobile: string, otp: string) => Promise<any>;
   resendOTP: (mobile: string) => Promise<void>;
