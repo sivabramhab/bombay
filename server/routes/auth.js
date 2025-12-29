@@ -88,10 +88,9 @@ router.post('/register', [
         if (!existingUser.isSeller) {
           existingUser.isSeller = true;
           existingUser.role = 'seller';
-          // Keep userType as 'user' so they remain both user and seller
-          if (!existingUser.userType || existingUser.userType === 'user') {
-            existingUser.userType = 'user'; // Keep as user for dual capabilities
-          }
+          // Always set userType to 'user' so sellers can also use user/buyer features
+          // This ensures dual capabilities - sellers are also users by default
+          existingUser.userType = 'user';
           await existingUser.save();
         }
         
@@ -184,7 +183,9 @@ router.post('/register', [
 
       const response = {
         success: true,
-        message: 'User registered successfully',
+        message: userType === 'seller' 
+          ? 'Seller registered successfully. You have both user and seller access.'
+          : 'User registered successfully',
         token,
         user: {
           id: savedUser._id,
