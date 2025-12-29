@@ -504,13 +504,7 @@ export default function AddProductPage() {
           padding: '32px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
         }}>
-          <form onSubmit={handleSubmit} style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '32px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ display: 'grid', gap: '24px' }}>
+          <div style={{ display: 'grid', gap: '24px' }}>
               {/* Product Title with Search in Edit Mode */}
               <div style={{ position: 'relative' }}>
                 <label style={{
