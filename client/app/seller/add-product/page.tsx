@@ -246,7 +246,18 @@ export default function AddProductPage() {
       
       // Set GST document preview if exists
       if (fullProduct.gstDocument) {
-        setGstDocumentPreview('existing');
+        // Store the GST document filename for display
+        const gstDocFileName = fullProduct.gstDocument;
+        // Check if it's a PDF or image based on extension
+        if (gstDocFileName.toLowerCase().endsWith('.pdf')) {
+          setGstDocumentPreview('pdf');
+        } else {
+          // For images, try to construct the URL
+          const imageUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/uploads/images/${gstDocFileName}`;
+          setGstDocumentPreview(imageUrl);
+        }
+      } else {
+        setGstDocumentPreview(null);
       }
       setSearchQuery(product.name);
       setSearchResults([]);
