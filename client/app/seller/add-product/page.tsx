@@ -34,6 +34,10 @@ export default function AddProductPage() {
   const [loading, setLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [originalProductData, setOriginalProductData] = useState<any>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [loadingProduct, setLoadingProduct] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -124,6 +128,30 @@ export default function AddProductPage() {
     };
   }, [searchQuery, isEditMode, editingProductId]);
 
+  // Detect changes in form data
+  useEffect(() => {
+    if (originalProductData && editingProductId) {
+      const currentData = {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category || '',
+        subcategory: formData.subcategory || '',
+        quantity: formData.quantity,
+        mrp: formData.mrp,
+        discount: formData.discount || '0',
+        bargainRange: formData.bargainRange || '',
+        warrantyDetails: formData.warrantyDetails || '0',
+        brand: formData.brand || '',
+        allowBargaining: formData.allowBargaining,
+      };
+
+      const changed = JSON.stringify(currentData) !== JSON.stringify(originalProductData);
+      setHasChanges(changed);
+    } else {
+      setHasChanges(false);
+    }
+  }, [formData, originalProductData, editingProductId]);
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -166,6 +194,9 @@ export default function AddProductPage() {
     setFiles([]);
     setPreviews([]);
     setEditingProductId(null);
+    setSelectedProduct(null);
+    setOriginalProductData(null);
+    setHasChanges(false);
     setSearchQuery('');
     setSearchResults([]);
     setShowSearchResults(false);
@@ -176,25 +207,45 @@ export default function AddProductPage() {
     resetForm();
   };
 
-  const handleProductSelect = (product: Product) => {
-    // Populate form with product data
-    setFormData({
-      name: product.name,
-      description: product.description,
-      category: product.category || '',
-      subcategory: product.subcategory || '',
-      quantity: product.stock.toString(),
-      mrp: product.basePrice.toString(),
-      discount: product.priceDiscount.toString(),
-      bargainRange: product.minBargainPrice?.toString() || '',
-      warrantyDetails: product.warranty?.duration || '0',
-      brand: product.brand || '',
-      allowBargaining: product.allowBargaining || false,
-    });
-    setEditingProductId(product._id);
-    setSearchQuery(product.name);
-    setSearchResults([]);
-    setShowSearchResults(false);
+  const handleProductSelect = async (product: Product) => {
+    setLoadingProduct(true);
+    try {
+      // Fetch full product details
+      const response = await api.get(`/products/${product._id}`);
+      const fullProduct = response.data;
+      
+      setSelectedProduct(fullProduct);
+      setEditingProductId(product._id);
+      
+      // Store original data for comparison
+      const originalData = {
+        name: fullProduct.name,
+        description: fullProduct.description,
+        category: fullProduct.category || '',
+        subcategory: fullProduct.subcategory || '',
+        quantity: fullProduct.stock.toString(),
+        mrp: fullProduct.basePrice.toString(),
+        discount: fullProduct.priceDiscount?.toString() || '0',
+        bargainRange: fullProduct.minBargainPrice?.toString() || '',
+        warrantyDetails: fullProduct.warranty?.duration || '0',
+        brand: fullProduct.brand || '',
+        allowBargaining: fullProduct.allowBargaining || false,
+      };
+      
+      setOriginalProductData(originalData);
+      
+      // Populate form with product data
+      setFormData(originalData);
+      setSearchQuery(product.name);
+      setSearchResults([]);
+      setShowSearchResults(false);
+      setHasChanges(false);
+    } catch (error: any) {
+      console.error('Error fetching product:', error);
+      toast.error('Failed to load product details');
+    } finally {
+      setLoadingProduct(false);
+    }
   };
 
   // Removed handleSearchChange - now handled directly in Product Title onChange
@@ -494,6 +545,157 @@ export default function AddProductPage() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Product Details Display - When product is selected */}
+        {selectedProduct && editingProductId && (
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            marginBottom: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            border: hasChanges ? '2px solid #2874f0' : '1px solid #e5e7eb'
+          }}>
+            {loadingProduct ? (
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p style={{ color: '#6b7280' }}>Loading product details...</p>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>
+                    Product Details
+                  </h2>
+                  {hasChanges && (
+                    <span style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#fef3c7',
+                      color: '#92400e',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      Changes Detected
+                    </span>
+                  )}
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+                  {/* Product Images */}
+                  {selectedProduct.images && selectedProduct.images.length > 0 && (
+                    <div>
+                      <label style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px', display: 'block' }}>
+                        Images
+                      </label>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {selectedProduct.images.slice(0, 3).map((img, idx) => {
+                          // Construct image URL - handle both local paths and URLs
+                          const imageUrl = img.startsWith('http') 
+                            ? img 
+                            : `${typeof window !== 'undefined' ? window.location.origin : ''}/uploads/images/${img}`;
+                          return (
+                          <img
+                            key={idx}
+                            src={imageUrl}
+                            alt={`Product ${idx + 1}`}
+                            style={{
+                              width: '80px',
+                              height: '80px',
+                              objectFit: 'cover',
+                              borderRadius: '8px',
+                              border: '1px solid #e5e7eb'
+                            }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          );
+                        })}
+                        {selectedProduct.images.length > 3 && (
+                          <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '8px',
+                            border: '1px solid #e5e7eb',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: '#f3f4f6',
+                            fontSize: '12px',
+                            color: '#6b7280'
+                          }}>
+                            +{selectedProduct.images.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Current Details */}
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px', display: 'block' }}>
+                      Current Name
+                    </label>
+                    <p style={{ fontSize: '14px', color: '#1f2937', margin: 0, fontWeight: '500' }}>
+                      {selectedProduct.name}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px', display: 'block' }}>
+                      Current Category
+                    </label>
+                    <p style={{ fontSize: '14px', color: '#1f2937', margin: 0 }}>
+                      {selectedProduct.category || 'Not specified'}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px', display: 'block' }}>
+                      Current Price
+                    </label>
+                    <p style={{ fontSize: '14px', color: '#1f2937', margin: 0, fontWeight: '600' }}>
+                      ₹{selectedProduct.sellingPrice?.toLocaleString() || '0'}
+                      {selectedProduct.basePrice && selectedProduct.basePrice > selectedProduct.sellingPrice && (
+                        <span style={{ fontSize: '12px', color: '#6b7280', textDecoration: 'line-through', marginLeft: '8px' }}>
+                          ₹{selectedProduct.basePrice.toLocaleString()}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px', display: 'block' }}>
+                      Current Stock
+                    </label>
+                    <p style={{ fontSize: '14px', color: '#1f2937', margin: 0 }}>
+                      {selectedProduct.stock || 0} units
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px', display: 'block' }}>
+                      Bargaining
+                    </label>
+                    <p style={{ fontSize: '14px', color: '#1f2937', margin: 0 }}>
+                      {selectedProduct.allowBargaining ? 'Enabled' : 'Disabled'}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px', display: 'block' }}>
+                      Warranty
+                    </label>
+                    <p style={{ fontSize: '14px', color: '#1f2937', margin: 0 }}>
+                      {selectedProduct.warranty?.hasWarranty ? `${selectedProduct.warranty.duration} months` : 'No warranty'}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -1128,38 +1330,41 @@ export default function AddProductPage() {
               <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (isEditMode && editingProductId && !hasChanges)}
                   style={{
                     flex: 1,
                     padding: '14px 24px',
-                    backgroundColor: loading ? '#9ca3af' : '#2874f0',
+                    backgroundColor: (loading || (isEditMode && editingProductId && !hasChanges)) ? '#9ca3af' : '#2874f0',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
                     fontWeight: '600',
                     fontSize: '16px',
-                    cursor: loading ? 'not-allowed' : 'pointer',
+                    cursor: (loading || (isEditMode && editingProductId && !hasChanges)) ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s',
-                    boxShadow: loading ? 'none' : '0 4px 12px rgba(40,116,240,0.3)'
+                    boxShadow: (loading || (isEditMode && editingProductId && !hasChanges)) ? 'none' : '0 4px 12px rgba(40,116,240,0.3)'
                   }}
                   onMouseEnter={(e) => {
-                    if (!loading) {
+                    if (!loading && !(isEditMode && editingProductId && !hasChanges)) {
                       e.currentTarget.style.backgroundColor = '#1e62d9';
                       e.currentTarget.style.transform = 'translateY(-2px)';
                       e.currentTarget.style.boxShadow = '0 6px 16px rgba(40,116,240,0.4)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!loading) {
+                    if (!loading && !(isEditMode && editingProductId && !hasChanges)) {
                       e.currentTarget.style.backgroundColor = '#2874f0';
                       e.currentTarget.style.transform = 'translateY(0)';
                       e.currentTarget.style.boxShadow = '0 4px 12px rgba(40,116,240,0.3)';
                     }
                   }}
+                  title={isEditMode && editingProductId && !hasChanges ? 'Make changes to enable update' : ''}
                 >
                   {loading 
                     ? (isEditMode ? 'Updating Product...' : 'Creating Product...')
-                    : (isEditMode ? 'Update Product' : 'Add Product')
+                    : (isEditMode && editingProductId && !hasChanges)
+                      ? 'Update Product (No Changes)'
+                      : (isEditMode ? 'Update Product' : 'Add Product')
                   }
                 </button>
                 <Link
