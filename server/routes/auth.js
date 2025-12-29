@@ -91,8 +91,9 @@ router.post('/register', [
     // Save user to database
     await user.save();
 
-    // Send OTP for mobile verification
-    const otpResult = await sendOTP(mobile.trim());
+    // OTP disabled - auto-verify mobile
+    // Generate token immediately
+    const token = generateToken(user._id);
 
     res.status(201).json({
       success: true,

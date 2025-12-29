@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import UserSellerDialog from '@/components/UserSellerDialog';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
