@@ -7,7 +7,6 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
-  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,9 +14,9 @@ export default function RegisterPage() {
     mobile: '',
     userType: 'user', // 'user' or 'seller'
   });
-  const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { register, verifyOTP, resendOTP } = useAuthStore();
+  const [showDialog, setShowDialog] = useState(false);
+  const { register } = useAuthStore();
   const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -60,109 +59,10 @@ export default function RegisterPage() {
     }
   };
 
-  if (false) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '40px 16px'
-      }}>
-        <div className="max-w-md w-full space-y-8" style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '40px 32px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-        }}>
-          <div>
-            <h2 style={{ 
-              marginTop: '0',
-              marginBottom: '8px',
-              textAlign: 'center',
-              fontSize: '28px',
-              fontWeight: 'bold',
-              color: '#1f2937'
-            }}>
-              Verify Mobile Number
-            </h2>
-            <p style={{
-              marginTop: '8px',
-              textAlign: 'center',
-              fontSize: '14px',
-              color: '#6b7280'
-            }}>
-              Enter the OTP sent to {formData.mobile}
-            </p>
-          </div>
-          <form className="mt-8 space-y-6" onSubmit={handleVerifyOTP}>
-            <div>
-              <label htmlFor="otp" className="sr-only">
-                OTP
-              </label>
-              <input
-                id="otp"
-                name="otp"
-                type="text"
-                required
-                maxLength={6}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Enter 6-digit OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              />
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                style={{
-                  width: '100%',
-                  padding: '12px 24px',
-                  background: isLoading 
-                    ? '#9ca3af' 
-                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  fontSize: '14px',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: isLoading ? 'none' : '0 4px 12px rgba(102,126,234,0.4)'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(102,126,234,0.5)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(102,126,234,0.4)';
-                  }
-                }}
-              >
-                {isLoading ? 'Verifying...' : 'Verify OTP'}
-              </button>
-            </div>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={handleResendOTP}
-                className="text-sm text-blue-600 hover:text-blue-500"
-              >
-                Resend OTP
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ 
+    <>
+      {showDialog && <UserSellerDialog onSelect={handleDialogSelect} />}
+      <div className="min-h-screen flex items-center justify-center" style={{ 
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '40px 16px'
     }}>
@@ -354,6 +254,7 @@ export default function RegisterPage() {
         </form>
       </div>
     </div>
+    </>
   );
 }
 
