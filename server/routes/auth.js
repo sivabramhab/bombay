@@ -139,13 +139,16 @@ router.post('/register', [
     }
 
     // Create new user
+    // IMPORTANT: When registering as seller, userType is 'user' by default
+    // This allows sellers to also use user/buyer features (dual capabilities)
+    // The isSeller flag and role='seller' identify them as sellers
     const user = new User({
       email: email.toLowerCase().trim(),
       password: password,
       name: name.trim(),
       mobile: mobile.trim(),
       mobileVerified: true, // Auto-verify - OTP disabled
-      userType: userType === 'seller' ? 'seller' : 'user',
+      userType: 'user', // Always 'user' - sellers are also users by default
       role: userType === 'seller' ? 'seller' : 'buyer',
       isSeller: userType === 'seller',
     });

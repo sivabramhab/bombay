@@ -57,16 +57,9 @@ router.post('/register', auth, [
     user.isSeller = true;
     user.role = 'seller'; // Update role to seller for seller permissions
     
-    // IMPORTANT: Keep userType as 'user' so they can still perform user/buyer activities
-    // If userType was already 'seller', keep it; if 'user', keep it as 'user'
-    // This way they have both capabilities
-    if (user.userType === 'user') {
-      // Keep userType as 'user' - they remain both user and seller
-      // userType stays 'user', but isSeller = true and role = 'seller'
-    } else if (!user.userType) {
-      user.userType = 'user'; // Default to user if not set
-    }
-    // If userType is already 'seller', it remains 'seller' but now they also have isSeller = true
+    // IMPORTANT: Always set userType to 'user' so sellers can also use user/buyer features
+    // This ensures dual capabilities - sellers are also users by default
+    user.userType = 'user';
     
     await user.save();
 
