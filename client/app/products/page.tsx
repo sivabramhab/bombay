@@ -119,6 +119,11 @@ function ProductsContent() {
             )}
           </p>
           {filters.search && filters.search.length > 0 && filters.search.length < 3 && (
+            <p style={{ fontSize: '12px', opacity: 0.8, marginTop: '8px', color: '#ffd700' }}>
+              💡 Type at least 3 characters to search automatically
+            </p>
+          )}
+          {filters.search && filters.search.length > 0 && filters.search.length < 3 && (
             <p style={{ fontSize: '12px', opacity: 0.8, marginTop: '8px', color: '#f59e0b' }}>
               Type at least 3 characters to search
             </p>
