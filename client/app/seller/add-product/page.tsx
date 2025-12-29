@@ -357,7 +357,7 @@ export default function AddProductPage() {
         return;
       }
 
-      // If editing, update product
+      // If editing, update product - backend will verify ownership
       if (isEditMode && editingProductId) {
         // Create FormData for update (to handle GST document if uploaded)
         const updateDataForm = new FormData();

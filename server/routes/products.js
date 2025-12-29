@@ -8,17 +8,24 @@ const upload = require('../config/multer');
 
 const router = express.Router();
 
-// Get seller's products (for edit/search)
+// Get seller's products (for edit/search) - ONLY products created by this seller
 router.get('/seller/my-products', auth, async (req, res) => {
   try {
+    // Get seller record for the authenticated user
     const seller = await Seller.findOne({ userId: req.user._id });
     if (!seller) {
-      return res.status(403).json({ message: 'Seller not found' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'Seller not found. Please register as a seller first.' 
+      });
     }
 
     const { search } = req.query;
+    
+    // IMPORTANT: Only return products where sellerId matches the authenticated seller's ID
+    // This ensures sellers can only see and edit their own products
     const query = { 
-      sellerId: seller._id,
+      sellerId: seller._id, // Filter by seller's ID - critical security check
       isActive: true 
     };
 
@@ -32,16 +39,23 @@ router.get('/seller/my-products', auth, async (req, res) => {
       ];
     }
 
+    // Fetch only products belonging to this seller
     const products = await Product.find(query)
       .select('name description brand category subcategory basePrice sellingPrice stock images gstNumber gstDocument')
       .limit(50)
       .sort({ createdAt: -1 })
       .lean();
 
+    console.log(`Seller ${seller._id} requested products - found ${products.length} products`);
+
     res.json({ success: true, products });
   } catch (error) {
     console.error('Get seller products error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error', 
+      error: error.message 
+    });
   }
 });
 
@@ -398,11 +412,20 @@ router.put('/:id', auth, async (req, res) => {
 
     const product = await Product.findById(req.params.id);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Product not found' 
+      });
     }
 
+    // SECURITY: Ensure only the product owner can update it
+    // Compare sellerId from product with the authenticated seller's _id
     if (product.sellerId.toString() !== seller._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this product' });
+      console.warn(`Unauthorized update attempt: Seller ${seller._id} tried to update product ${req.params.id} owned by ${product.sellerId}`);
+      return res.status(403).json({ 
+        success: false,
+        message: 'Not authorized to update this product. You can only edit products you created.' 
+      });
     }
 
     const updates = req.body;
@@ -445,11 +468,19 @@ router.delete('/:id', auth, authorize('seller'), async (req, res) => {
 
     const product = await Product.findById(req.params.id);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Product not found' 
+      });
     }
 
+    // SECURITY: Ensure only the product owner can delete it
     if (product.sellerId.toString() !== seller._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to delete this product' });
+      console.warn(`Unauthorized delete attempt: Seller ${seller._id} tried to delete product ${req.params.id} owned by ${product.sellerId}`);
+      return res.status(403).json({ 
+        success: false,
+        message: 'Not authorized to delete this product. You can only delete products you created.' 
+      });
     }
 
     product.isActive = false;
