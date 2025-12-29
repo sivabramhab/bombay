@@ -2,27 +2,41 @@ import axios from 'axios';
 
 // Use EC2 server URL if available, otherwise localhost for development
 const getAPIUrl = () => {
-  // First check environment variable
-  if (process.env.NEXT_PUBLIC_API_URL) {
+  // First check environment variable (this works both server-side and client-side)
+  if (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL) {
+    console.log('Using NEXT_PUBLIC_API_URL from env:', process.env.NEXT_PUBLIC_API_URL);
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
   // If on EC2 domain, always use HTTPS (via Nginx reverse proxy)
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
+    console.log('Current hostname:', hostname);
+    
     if (hostname.includes('ec2-') || hostname.includes('compute-1.amazonaws.com')) {
-      return `https://${hostname}/api`;
+      const url = `https://${hostname}/api`;
+      console.log('Using EC2 HTTPS URL:', url);
+      return url;
     }
     if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
       // For other domains, use HTTPS if page is HTTPS, otherwise HTTP
-      return window.location.protocol === 'https:' 
+      const url = window.location.protocol === 'https:' 
         ? `https://${hostname}/api`
         : `http://${hostname}:5000/api`;
+      console.log('Using non-localhost URL:', url);
+      return url;
     }
+    
+    // For localhost, always use localhost:5000
+    const url = 'http://localhost:5000/api';
+    console.log('Using localhost URL:', url);
+    return url;
   }
   
-  // Default to localhost for development
-  return 'http://localhost:5000/api';
+  // Default to localhost for development (server-side rendering)
+  const url = 'http://localhost:5000/api';
+  console.log('Using default localhost URL:', url);
+  return url;
 };
 
 const API_URL = getAPIUrl();
