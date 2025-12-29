@@ -31,8 +31,17 @@ router.get('/', async (req, res) => {
       if (minPrice) query.sellingPrice.$gte = Number(minPrice);
       if (maxPrice) query.sellingPrice.$lte = Number(maxPrice);
     }
+    // Case-insensitive search across multiple fields
     if (search) {
-      query.$text = { $search: search };
+      const searchRegex = new RegExp(search.trim(), 'i'); // 'i' flag makes it case-insensitive
+      query.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { brand: searchRegex },
+        { category: searchRegex },
+        { subcategory: searchRegex },
+        { tags: { $in: [searchRegex] } }
+      ];
     }
 
     const sort = {};
