@@ -31,16 +31,22 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   register: async (data) => {
     try {
+      console.log('AuthStore: Registering user with data:', { ...data, password: '***' });
       const response = await authService.register(data);
+      console.log('AuthStore: Registration response:', response);
+      
       // If registration returns token and user, update state
-      if (response.token && response.user) {
+      if (response && response.token && response.user) {
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', response.token);
         }
         set({ user: response.user, isAuthenticated: true, isLoading: false });
       }
       return response;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('AuthStore: Registration error:', error);
+      console.error('AuthStore: Error response:', error.response?.data);
+      set({ isLoading: false });
       throw error;
     }
   },

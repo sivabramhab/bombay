@@ -25,7 +25,14 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
+      console.log('Registration attempt:', { ...formData, userType: formData.userType });
       const response: any = await register({ ...formData, userType: formData.userType });
+      console.log('Registration response:', response);
+      
+      if (!response || !response.success) {
+        throw new Error(response?.message || 'Registration failed - no response received');
+      }
+      
       toast.success('Registration successful!');
       
       // Get user data from registration response
@@ -47,7 +54,24 @@ export default function RegisterPage() {
         router.push('/');
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      console.error('Registration error:', error);
+      console.error('Error response:', error.response);
+      const errorMessage = error.response?.data?.message 
+        || error.response?.data?.error 
+        || error.message 
+        || 'Registration failed. Please check your details and try again.';
+      toast.error(errorMessage);
+      
+      // Also show validation errors if present
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        error.response.data.errors.forEach((err: any) => {
+          if (typeof err === 'string') {
+            toast.error(err);
+          } else if (err.message) {
+            toast.error(err.message);
+          }
+        });
+      }
     } finally {
       setIsLoading(false);
     }

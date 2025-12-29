@@ -18,11 +18,19 @@ export interface AuthResponse {
 
 export const authService = {
   register: async (data: { email: string; password: string; name: string; mobile: string; userType?: string }) => {
-    const response = await api.post<AuthResponse>('/auth/register', data);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    try {
+      console.log('AuthService: Sending registration request:', { ...data, password: '***' });
+      const response = await api.post<AuthResponse>('/auth/register', data);
+      console.log('AuthService: Registration response received:', response.data);
+      if (response.data && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      return response.data;
+    } catch (error: any) {
+      console.error('AuthService: Registration API error:', error);
+      console.error('AuthService: Error response data:', error.response?.data);
+      throw error;
     }
-    return response.data;
   },
 
   login: async (data: { email: string; password: string }) => {

@@ -193,6 +193,13 @@ router.post('/register', [
   } catch (error) {
     console.error('Registration error:', error);
     console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      keyPattern: error.keyPattern,
+      errors: error.errors,
+    });
     
     // Handle duplicate key error (MongoDB duplicate key)
     if (error.code === 11000) {
@@ -210,6 +217,7 @@ router.post('/register', [
         success: false,
         message: 'Validation failed',
         errors: messages,
+        details: error.message,
       });
     }
     
@@ -223,16 +231,15 @@ router.post('/register', [
     }
     
     // Generic error response
-    console.error('Registration error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      code: error.code,
-    });
     res.status(500).json({
       success: false,
       message: 'Server error during registration. Please try again.',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? {
+        name: error.name,
+        code: error.code,
+        stack: error.stack,
+      } : undefined,
     });
   }
 });
