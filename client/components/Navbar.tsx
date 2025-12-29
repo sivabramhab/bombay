@@ -89,7 +89,7 @@ function NavbarContent() {
   const categories = [
     { name: 'Electronics', value: 'electronics', icon: '📱' },
     { name: 'Fashion', value: 'clothing', icon: '👕' },
-    { name: 'Home Appliances', value: 'home', icon: '🏠' },
+    { name: 'Home Appliances', value: 'home', icon: '🔌' },
     { name: 'Books', value: 'books', icon: '📚' },
     { name: 'Sports', value: 'sports', icon: '⚽' },
     { name: 'Beauty', value: 'beauty', icon: '💄' },
@@ -97,9 +97,7 @@ function NavbarContent() {
     { name: 'Grocery', value: 'grocery', icon: '🛒' },
   ];
 
-  const navLinks = [
-    { href: '/challenges', label: 'Challenges', icon: '🎯' },
-  ];
+  const navLinks: Array<{ href: string; label: string; icon: string }> = [];
 
   if (isAuthenticated && user?.isSeller) {
     navLinks.push({ href: '/seller/dashboard', label: 'Seller', icon: '🏪' });

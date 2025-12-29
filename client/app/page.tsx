@@ -77,7 +77,7 @@ export default function Home() {
   const categories = [
     { name: 'Electronics', icon: '📱', href: '/products?category=electronics' },
     { name: 'Fashion', icon: '👕', href: '/products?category=clothing' },
-    { name: 'Home Appliances', icon: '🏠', href: '/products?category=home' },
+    { name: 'Home Appliances', icon: '🔌', href: '/products?category=home' },
     { name: 'Books', icon: '📚', href: '/products?category=books' },
     { name: 'Sports', icon: '⚽', href: '/products?category=sports' },
     { name: 'Beauty', icon: '💄', href: '/products?category=beauty' },
