@@ -40,7 +40,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await verifyOTP(formData.mobile, otp);
+      const response: any = await verifyOTP(formData.mobile, otp);
       toast.success('Mobile verified successfully!');
       
       // Redirect based on userType
