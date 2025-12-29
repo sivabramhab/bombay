@@ -184,13 +184,10 @@ export default function AddProductPage() {
     const value = e.target.value;
     setSearchQuery(value);
 
-    if (value.trim().length >= 3) {
-      // Search will be triggered by useEffect
-    } else if (value.trim().length === 0) {
-      // If search is cleared and no product selected, show "Add New Product" dialog
-      if (editingProductId) {
-        setShowAddNewDialog(true);
-      }
+    // If search is cleared while in edit mode and we had a product selected, clear the form
+    if (value.trim().length === 0 && editingProductId) {
+      resetForm();
+      setIsEditMode(true);
     }
   };
 
@@ -510,7 +507,7 @@ export default function AddProductPage() {
                   ))}
                 </div>
               )}
-              {searchQuery.trim().length >= 3 && !showSearchResults && searchResults.length === 0 && (
+              {searchQuery.trim().length >= 3 && searchResults.length === 0 && (
                 <div style={{
                   position: 'absolute',
                   top: '100%',
@@ -524,9 +521,25 @@ export default function AddProductPage() {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   zIndex: 1000
                 }}>
-                  <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
-                    No products found. Click "Add New Product" to create one.
+                  <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '12px' }}>
+                    No products found. Would you like to add a new product?
                   </p>
+                  <button
+                    onClick={handleAddNewProduct}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#2874f0',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      width: '100%'
+                    }}
+                  >
+                    Add New Product
+                  </button>
                 </div>
               )}
             </div>
