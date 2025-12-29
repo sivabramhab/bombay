@@ -277,7 +277,15 @@ export default function AddProductPage() {
       setHasChanges(false);
     } catch (error: any) {
       console.error('Error fetching product:', error);
-      toast.error('Failed to load product details');
+      if (error.response?.status === 403 || error.response?.status === 404) {
+        toast.error(error.response?.data?.message || 'You are not authorized to access this product. You can only edit products you created.');
+      } else {
+        toast.error('Failed to load product details');
+      }
+      // Clear selection on error
+      setSelectedProduct(null);
+      setEditingProductId(null);
+      setSearchQuery('');
     } finally {
       setLoadingProduct(false);
     }
@@ -439,7 +447,18 @@ export default function AddProductPage() {
       }
     } catch (error: any) {
       console.error('Product operation error:', error);
-      toast.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} product`);
+      const errorMessage = error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} product`;
+      
+      // Handle authorization errors specifically
+      if (error.response?.status === 403) {
+        toast.error(errorMessage || 'You are not authorized to modify this product. You can only edit products you created.');
+        // Reset form if unauthorized to prevent confusion
+        if (isEditMode) {
+          handleCancelEdit();
+        }
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
