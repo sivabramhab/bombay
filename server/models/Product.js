@@ -68,6 +68,8 @@ const productSchema = new mongoose.Schema({
     details: String,
   },
   tags: [String],
+  gstNumber: String,
+  gstDocument: String, // File path/name for GST document
   isActive: {
     type: Boolean,
     default: true,

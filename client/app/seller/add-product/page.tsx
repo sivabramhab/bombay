@@ -26,6 +26,8 @@ interface Product {
     type: string;
   };
   images?: string[];
+  gstNumber?: string;
+  gstDocument?: string;
 }
 
 export default function AddProductPage() {
@@ -58,9 +60,12 @@ export default function AddProductPage() {
     warrantyDetails: '',
     brand: '',
     allowBargaining: false,
+    gstNumber: '',
   });
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [gstDocument, setGstDocument] = useState<File | null>(null);
+  const [gstDocumentPreview, setGstDocumentPreview] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   // Check authentication and seller status
@@ -143,6 +148,7 @@ export default function AddProductPage() {
         warrantyDetails: formData.warrantyDetails || '0',
         brand: formData.brand || '',
         allowBargaining: formData.allowBargaining,
+        gstNumber: formData.gstNumber || '',
       };
 
       const changed = JSON.stringify(currentData) !== JSON.stringify(originalProductData);
@@ -230,12 +236,18 @@ export default function AddProductPage() {
         warrantyDetails: fullProduct.warranty?.duration || '0',
         brand: fullProduct.brand || '',
         allowBargaining: fullProduct.allowBargaining || false,
+        gstNumber: fullProduct.gstNumber || '',
       };
       
       setOriginalProductData(originalData);
       
       // Populate form with product data
       setFormData(originalData);
+      
+      // Set GST document preview if exists
+      if (fullProduct.gstDocument) {
+        setGstDocumentPreview('existing');
+      }
       setSearchQuery(product.name);
       setSearchResults([]);
       setShowSearchResults(false);
@@ -264,6 +276,28 @@ export default function AddProductPage() {
       const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
       setPreviews(newPreviews);
     }
+  };
+
+  const handleGstDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setGstDocument(file);
+      
+      // Create preview for PDF/image
+      if (file.type === 'application/pdf') {
+        setGstDocumentPreview('pdf');
+      } else {
+        setGstDocumentPreview(URL.createObjectURL(file));
+      }
+    }
+  };
+
+  const removeGstDocument = () => {
+    if (gstDocumentPreview && gstDocumentPreview !== 'pdf') {
+      URL.revokeObjectURL(gstDocumentPreview);
+    }
+    setGstDocument(null);
+    setGstDocumentPreview(null);
   };
 
   const removeFile = (index: number) => {
@@ -302,26 +336,38 @@ export default function AddProductPage() {
 
       // If editing, update product
       if (isEditMode && editingProductId) {
-        const updateData: any = {
-          name: formData.name,
-          description: formData.description,
-          category: formData.category || 'general',
-          subcategory: formData.subcategory || '',
-          basePrice: parseFloat(formData.mrp),
-          sellingPrice: calculateSellingPrice(),
-          stock: parseInt(formData.quantity),
-          priceDiscount: parseFloat(formData.discount || '0'),
-          allowBargaining: formData.allowBargaining,
-          minBargainPrice: formData.bargainRange ? parseFloat(formData.bargainRange) : undefined,
-          brand: formData.brand || '',
-          warranty: {
-            hasWarranty: parseFloat(formData.warrantyDetails) > 0,
-            duration: formData.warrantyDetails || '0',
-            type: 'seller'
-          }
+        // Create FormData for update (to handle GST document if uploaded)
+        const updateDataForm = new FormData();
+        updateDataForm.append('name', formData.name);
+        updateDataForm.append('description', formData.description);
+        updateDataForm.append('category', formData.category || 'general');
+        updateDataForm.append('subcategory', formData.subcategory || '');
+        updateDataForm.append('basePrice', formData.mrp);
+        updateDataForm.append('sellingPrice', calculateSellingPrice().toString());
+        updateDataForm.append('stock', formData.quantity);
+        updateDataForm.append('priceDiscount', formData.discount || '0');
+        updateDataForm.append('allowBargaining', formData.allowBargaining.toString());
+        updateDataForm.append('minBargainPrice', formData.bargainRange || '0');
+        updateDataForm.append('brand', formData.brand || '');
+        updateDataForm.append('gstNumber', formData.gstNumber || '');
+        
+        const warrantyObj = {
+          hasWarranty: parseFloat(formData.warrantyDetails) > 0,
+          duration: formData.warrantyDetails || '0',
+          type: 'seller'
         };
+        updateDataForm.append('warranty', JSON.stringify(warrantyObj));
 
-        const response = await api.put(`/products/${editingProductId}`, updateData);
+        // Add GST document if uploaded
+        if (gstDocument) {
+          updateDataForm.append('gstDocument', gstDocument);
+        }
+
+        const response = await api.put(`/products/${editingProductId}`, updateDataForm, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
         toast.success('Product updated successfully!');
         resetForm();
         setIsEditMode(false);
@@ -341,6 +387,7 @@ export default function AddProductPage() {
         submitData.append('minBargainPrice', formData.bargainRange || '0');
         submitData.append('brand', formData.brand || '');
         submitData.append('warrantyDetails', formData.warrantyDetails || '0');
+        submitData.append('gstNumber', formData.gstNumber || '');
         
         const warrantyObj = {
           hasWarranty: parseFloat(formData.warrantyDetails) > 0,
@@ -352,6 +399,11 @@ export default function AddProductPage() {
         files.forEach((file) => {
           submitData.append('files', file);
         });
+
+        // Add GST document if uploaded
+        if (gstDocument) {
+          submitData.append('gstDocument', gstDocument);
+        }
 
         const response = await api.post('/products/create', submitData, {
           headers: {
@@ -1197,6 +1249,177 @@ export default function AddProductPage() {
                   />
                   <span>Allow Bargaining on this product</span>
                 </label>
+              </div>
+
+              {/* GST Information */}
+              <div style={{ display: 'grid', gap: '16px', padding: '20px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1f2937', marginBottom: '8px' }}>
+                  GST Information
+                </h3>
+                
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    marginBottom: '8px'
+                  }}>
+                    GST Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.gstNumber}
+                    onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value.toUpperCase() })}
+                    placeholder="e.g., 27AAAAA0000A1Z5"
+                    maxLength={15}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                      textTransform: 'uppercase'
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#2874f0';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(40,116,240,0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  />
+                  <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                    Format: 15 characters (e.g., 27AAAAA0000A1Z5)
+                  </p>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    marginBottom: '8px'
+                  }}>
+                    GST Document (PDF/Image)
+                  </label>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleGstDocumentChange}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '2px dashed #e5e7eb',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                      backgroundColor: 'white',
+                      cursor: 'pointer'
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#2874f0';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(40,116,240,0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  />
+                  {gstDocumentPreview && (
+                    <div style={{ marginTop: '12px', position: 'relative', display: 'inline-block' }}>
+                      {gstDocumentPreview === 'pdf' ? (
+                        <div style={{
+                          padding: '12px',
+                          backgroundColor: '#dc2626',
+                          color: 'white',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '14px'
+                        }}>
+                          <span>📄</span>
+                          <span>{gstDocument?.name || 'GST Document.pdf'}</span>
+                          <button
+                            type="button"
+                            onClick={removeGstDocument}
+                            style={{
+                              marginLeft: '8px',
+                              backgroundColor: 'rgba(255,255,255,0.2)',
+                              border: 'none',
+                              borderRadius: '4px',
+                              color: 'white',
+                              padding: '4px 8px',
+                              cursor: 'pointer',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : gstDocumentPreview === 'existing' ? (
+                        <div style={{
+                          padding: '12px',
+                          backgroundColor: '#10b981',
+                          color: 'white',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '14px'
+                        }}>
+                          <span>📄</span>
+                          <span>Existing GST Document</span>
+                        </div>
+                      ) : (
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                          <img
+                            src={gstDocumentPreview}
+                            alt="GST Document Preview"
+                            style={{
+                              maxWidth: '200px',
+                              maxHeight: '200px',
+                              borderRadius: '8px',
+                              border: '2px solid #e5e7eb'
+                            }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={removeGstDocument}
+                            style={{
+                              position: 'absolute',
+                              top: '4px',
+                              right: '4px',
+                              backgroundColor: '#dc2626',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '24px',
+                              height: '24px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                    Upload GST certificate (PDF, JPG, PNG) - Max 10MB
+                  </p>
+                </div>
               </div>
 
               {/* File Upload - Only required for new products */}

@@ -34,13 +34,22 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter
+// File filter - handle different field names
 const fileFilter = (req, file, cb) => {
-  // Accept images and videos
-  if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
-    cb(null, true);
+  // For GST document field, accept PDF and images
+  if (file.fieldname === 'gstDocument') {
+    if (file.mimetype === 'application/pdf' || file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('GST document must be PDF or image file!'), false);
+    }
   } else {
-    cb(new Error('Only image and video files are allowed!'), false);
+    // For product images/videos (fieldname 'files'), accept images and videos
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image and video files are allowed for product images!'), false);
+    }
   }
 };
 

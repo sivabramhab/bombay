@@ -192,8 +192,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create product with file upload (seller only)
-router.post('/create', auth, upload.array('files', 10), async (req, res) => {
+// Create product with file upload (seller only) - supports images and GST document
+router.post('/create', auth, upload.fields([{ name: 'files', maxCount: 10 }, { name: 'gstDocument', maxCount: 1 }]), async (req, res) => {
   try {
     // Check if user is a seller (check isSeller flag first, then role/userType)
     // Users who converted to sellers will have isSeller = true
@@ -228,6 +228,7 @@ router.post('/create', auth, upload.array('files', 10), async (req, res) => {
       brand,
       warrantyDetails,
       warranty,
+      gstNumber,
     } = req.body;
 
     // Validate required fields
@@ -235,12 +236,22 @@ router.post('/create', auth, upload.array('files', 10), async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Process uploaded files
+    // Process uploaded files - separate images and GST document
     const imageUrls = [];
+    let gstDocumentName = null;
+    
     if (req.files && req.files.length > 0) {
+      // Check if there's a field name to identify file types
+      // Files with fieldname 'files' are product images/videos
+      // Files with fieldname 'gstDocument' are GST documents
       req.files.forEach((file) => {
-        // Store filename (same name as saved in folder - original filename)
-        imageUrls.push(file.filename);
+        if (file.fieldname === 'gstDocument') {
+          // Store GST document filename
+          gstDocumentName = file.filename;
+        } else {
+          // Store product image/video filename
+          imageUrls.push(file.filename);
+        }
       });
     }
 
