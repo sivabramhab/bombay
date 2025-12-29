@@ -90,7 +90,7 @@ export default function Navbar() {
           </Link>
 
           {/* Search Bar - Amazon/Flipkart Style */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-2xl mx-4 hidden md:flex">
+          <form onSubmit={handleSearch} className="flex-1 max-w-2xl mx-2 sm:mx-4 hidden md:flex">
             <div className="relative w-full flex" style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
               <input
                 type="text"

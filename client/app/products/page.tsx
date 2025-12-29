@@ -110,10 +110,10 @@ function ProductsContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
           {/* Sidebar Filters - Amazon/Flipkart Style */}
-          <aside className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-5 sticky top-20" style={{ borderRadius: '12px' }}>
+          <aside className="lg:col-span-1 order-2 lg:order-1">
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 md:p-5 lg:sticky lg:top-20" style={{ borderRadius: '12px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px', color: '#1f2937', borderBottom: '2px solid #e5e7eb', paddingBottom: '12px' }}>Filters</h2>
 
               {/* Category Filter */}
@@ -263,7 +263,7 @@ function ProductsContent() {
           </aside>
 
           {/* Products Grid */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 order-1 lg:order-2">
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3, 4, 5, 6].map((i) => (

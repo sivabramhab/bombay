@@ -2,6 +2,15 @@
 
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
+import { useEffect, useState } from 'react';
+
+// Helper function to get window width safely
+const getWindowWidth = () => {
+  if (typeof window !== 'undefined') {
+    return window.innerWidth;
+  }
+  return 1024; // Default desktop width
+};
 
 interface ProductCardProps {
   id: string;
@@ -27,7 +36,17 @@ export default function ProductCard({
   rating = 0,
 }: ProductCardProps) {
   const { addToCart } = useCartStore();
+  const [windowWidth, setWindowWidth] = useState(getWindowWidth());
   const discountPercentage = discount || (originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -70,8 +89,8 @@ export default function ProductCard({
           style={{
             position: 'relative',
             backgroundColor: '#ffffff',
-            padding: '20px',
-            height: '260px',
+            padding: windowWidth < 640 ? '12px' : '20px',
+            height: windowWidth < 640 ? '200px' : windowWidth < 1024 ? '240px' : '260px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -323,7 +342,14 @@ export default function ProductCard({
           )}
 
           {/* Action Buttons - Flipkart/Amazon Style */}
-          <div style={{ display: 'flex', gap: '10px', marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid #f3f4f6' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: windowWidth < 480 ? 'column' : 'row',
+            gap: '10px', 
+            marginTop: 'auto', 
+            paddingTop: '12px', 
+            borderTop: '1px solid #f3f4f6' 
+          }}>
             <button
               onClick={handleAddToCart}
               style={{

@@ -8,10 +8,24 @@ import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 
+// Helper function to get window width safely with state
+const useWindowWidth = () => {
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowWidth;
+};
+
 export default function CartPage() {
   const { items, totalItems, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCartStore();
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
+  const windowWidth = useWindowWidth();
   const [productImages, setProductImages] = useState<Record<string, string>>({});
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
@@ -145,7 +159,7 @@ export default function CartPage() {
 
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: window.innerWidth < 1024 ? '1fr' : '1fr 400px', 
+          gridTemplateColumns: windowWidth < 1024 ? '1fr' : '1fr 400px',
           gap: '24px' 
         }}
         className="cart-layout"
@@ -182,7 +196,7 @@ export default function CartPage() {
                   key={item.id}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '120px 1fr auto',
+                    gridTemplateColumns: windowWidth < 640 ? '1fr' : '120px 1fr auto',
                     gap: '16px',
                     padding: '16px',
                     borderRadius: '8px',
@@ -195,8 +209,9 @@ export default function CartPage() {
                   {/* Product Image */}
                   <Link href={`/products/${item.id}`}>
                     <div style={{
-                      width: '120px',
-                      height: '120px',
+                      width: windowWidth < 640 ? '100%' : '120px',
+                      height: windowWidth < 640 ? '200px' : '120px',
+                      margin: windowWidth < 640 ? '0 auto' : '0',
                       backgroundColor: '#f3f4f6',
                       borderRadius: '8px',
                       display: 'flex',

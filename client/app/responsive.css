@@ -1,0 +1,171 @@
+/* Comprehensive Responsive Styles for All Screen Sizes */
+
+/* Extra Small Devices (320px - 480px) - Small Phones */
+@media (max-width: 480px) {
+  /* Typography */
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 16px !important; }
+  p, span { font-size: 13px !important; }
+  
+  /* Spacing */
+  .max-w-7xl, .max-w-6xl, .max-w-5xl {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  /* Buttons */
+  button {
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+    min-height: 44px;
+  }
+  
+  /* Cards */
+  .card, [class*="rounded"] {
+    padding: 12px !important;
+  }
+  
+  /* Grid */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* Small Devices (481px - 640px) - Large Phones */
+@media (min-width: 481px) and (max-width: 640px) {
+  h1 { font-size: 22px !important; }
+  h2 { font-size: 20px !important; }
+  h3 { font-size: 18px !important; }
+  
+  .max-w-7xl {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  
+  .grid {
+    gap: 16px !important;
+  }
+}
+
+/* Medium Devices (641px - 768px) - Tablets Portrait */
+@media (min-width: 641px) and (max-width: 768px) {
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Large Devices (769px - 1024px) - Tablets Landscape / Small Laptops */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  
+  .grid-cols-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Extra Large Devices (1025px - 1280px) - Desktop */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .max-w-7xl {
+    max-width: 1200px;
+  }
+}
+
+/* 2X Large Devices (1281px - 1920px) - Large Desktop */
+@media (min-width: 1281px) and (max-width: 1920px) {
+  .max-w-7xl {
+    max-width: 1280px;
+  }
+}
+
+/* 3X Large Devices (1921px+) - Ultra Wide */
+@media (min-width: 1921px) {
+  .max-w-7xl {
+    max-width: 1536px;
+  }
+  
+  .grid-cols-4 {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Landscape Orientation */
+@media (max-width: 896px) and (orientation: landscape) {
+  .hero-banner, [class*="hero"] {
+    height: 160px !important;
+    min-height: 160px !important;
+  }
+  
+  nav {
+    padding: 4px 0 !important;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 20px !important;
+  }
+  
+  /* Remove hover effects on touch devices */
+  *:hover {
+    transform: none !important;
+  }
+  
+  /* Better spacing for touch */
+  .gap-2 { gap: 16px !important; }
+  .gap-4 { gap: 20px !important; }
+  .gap-6 { gap: 24px !important; }
+}
+
+/* Print Styles */
+@media print {
+  nav, footer, button, [class*="cart"], [class*="checkout"] {
+    display: none !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    color: black;
+    background: white;
+  }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark Mode Support (Future) */
+@media (prefers-color-scheme: dark) {
+  /* Will be implemented if dark mode is needed */
+}
+

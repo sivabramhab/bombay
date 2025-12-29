@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./responsive.css";
 
 :root {
   --background: #ffffff;
@@ -69,6 +70,49 @@ html {
   .product-image-container {
     height: 200px !important;
   }
+  
+  /* Ensure proper viewport scaling */
+  body {
+    font-size: 14px;
+  }
+  
+  /* Better touch targets on mobile */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Tablet Responsive (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .product-image-container {
+    height: 240px !important;
+  }
+}
+
+/* Large Desktop (1920px+) */
+@media (min-width: 1920px) {
+  .max-w-7xl {
+    max-width: 1536px;
+  }
+}
+
+/* Extra Small Devices (320px - 480px) */
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+  
+  .product-image-container {
+    height: 180px !important;
+  }
+}
+
+/* Landscape Mobile */
+@media (max-width: 896px) and (orientation: landscape) {
+  .hero-banner {
+    height: 180px !important;
+  }
 }
 
 /* Better loading states */
@@ -115,6 +159,48 @@ html {
   .cart-layout,
   .checkout-layout {
     gap: 16px !important;
+  }
+}
+
+/* Responsive Typography */
+@media (max-width: 480px) {
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 20px !important; }
+  h3 { font-size: 18px !important; }
+}
+
+/* Responsive Spacing */
+@media (max-width: 768px) {
+  .max-w-7xl {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* Responsive Grid */
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Touch-friendly buttons on mobile */
+@media (max-width: 768px) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input, select, textarea {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+}
+
+/* Responsive Images */
+@media (max-width: 768px) {
+  img {
+    max-width: 100% !important;
+    height: auto !important;
   }
 }
 
