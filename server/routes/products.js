@@ -8,6 +8,43 @@ const upload = require('../config/multer');
 
 const router = express.Router();
 
+// Get seller's products (for edit/search)
+router.get('/seller/my-products', auth, async (req, res) => {
+  try {
+    const seller = await Seller.findOne({ userId: req.user._id });
+    if (!seller) {
+      return res.status(403).json({ message: 'Seller not found' });
+    }
+
+    const { search } = req.query;
+    const query = { 
+      sellerId: seller._id,
+      isActive: true 
+    };
+
+    // If search query provided (3+ characters), search products
+    if (search && search.trim().length >= 3) {
+      const searchRegex = new RegExp(search.trim(), 'i');
+      query.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { brand: searchRegex },
+      ];
+    }
+
+    const products = await Product.find(query)
+      .select('name description brand category subcategory basePrice sellingPrice stock images')
+      .limit(50)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, products });
+  } catch (error) {
+    console.error('Get seller products error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Get all products with filters
 router.get('/', async (req, res) => {
   try {
@@ -336,8 +373,13 @@ router.post('/', auth, authorize('seller'), [
 });
 
 // Update product (seller only)
-router.put('/:id', auth, authorize('seller'), async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
+    // Check if user is a seller
+    if (!req.user.isSeller && req.user.role !== 'seller' && req.user.userType !== 'seller') {
+      return res.status(403).json({ message: 'Only sellers can update products' });
+    }
+
     const seller = await Seller.findOne({ userId: req.user._id });
     if (!seller) {
       return res.status(403).json({ message: 'Seller not found' });
@@ -363,15 +405,21 @@ router.put('/:id', auth, authorize('seller'), async (req, res) => {
 
     updates.updatedAt = new Date();
     
+    // Update product fields
     Object.keys(updates).forEach(key => {
-      if (updates[key] !== undefined) {
+      if (updates[key] !== undefined && key !== 'updatedAt') {
         product[key] = updates[key];
       }
     });
 
     await product.save();
-    res.json({ message: 'Product updated successfully', product });
+    res.json({ 
+      success: true,
+      message: 'Product updated successfully', 
+      product 
+    });
   } catch (error) {
+    console.error('Update product error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
