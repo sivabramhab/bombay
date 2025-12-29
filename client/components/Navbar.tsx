@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-export default function Navbar() {
+function NavbarContent() {
   const { user, isAuthenticated, isLoading, logout, loadUser } = useAuthStore();
   const { totalItems } = useCartStore();
   const pathname = usePathname();
@@ -17,7 +17,7 @@ export default function Navbar() {
 
   // Initialize search query from URL if on products page
   useEffect(() => {
-    if (pathname === '/products' && searchParams.get('search')) {
+    if (pathname === '/products' && searchParams?.get('search')) {
       setSearchQuery(searchParams.get('search') || '');
     }
   }, [pathname, searchParams]);
