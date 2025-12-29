@@ -63,11 +63,12 @@ router.post('/register', [
 
     // If user exists and trying to register as seller
     if (existingUser && userType === 'seller') {
-      // Verify password matches
-      const isPasswordMatch = await existingUser.comparePassword(password);
+      // Verify both email AND mobile number match (password can be wrong)
+      const emailMatches = existingUser.email === email.toLowerCase().trim();
+      const mobileMatches = existingUser.mobile === mobile.trim();
       
-      if (isPasswordMatch) {
-        // Password matches - upgrade user to seller
+      if (emailMatches && mobileMatches) {
+        // Both email and mobile match - upgrade user to seller (ignore password)
         // Check if seller record exists
         const Seller = require('../models/Seller');
         let seller = await Seller.findOne({ userId: existingUser._id });
@@ -113,10 +114,10 @@ router.post('/register', [
           },
         });
       } else {
-        // Password doesn't match
-        return res.status(401).json({ 
+        // Email or mobile doesn't match
+        return res.status(400).json({ 
           success: false,
-          message: 'Invalid password. Please use your existing password to upgrade to seller.',
+          message: 'Email and mobile number must match your existing account to upgrade to seller.',
         });
       }
     }
