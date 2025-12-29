@@ -83,21 +83,23 @@ router.post('/register', [
           await seller.save();
         }
         
-        // Update user to have seller capabilities
-        existingUser.isSeller = true;
-        existingUser.role = 'seller';
-        // Keep userType as 'user' so they remain both user and seller
-        if (!existingUser.userType || existingUser.userType === 'user') {
-          existingUser.userType = 'user'; // Keep as user for dual capabilities
+        // Update user to have seller capabilities (if not already a seller)
+        if (!existingUser.isSeller) {
+          existingUser.isSeller = true;
+          existingUser.role = 'seller';
+          // Keep userType as 'user' so they remain both user and seller
+          if (!existingUser.userType || existingUser.userType === 'user') {
+            existingUser.userType = 'user'; // Keep as user for dual capabilities
+          }
+          await existingUser.save();
         }
-        await existingUser.save();
         
         // Generate token
         const token = generateToken(existingUser._id);
         
         return res.status(200).json({
           success: true,
-          message: 'Account upgraded to seller successfully. You now have both user and seller access.',
+          message: existingUser.isSeller ? 'Welcome back! You already have seller access.' : 'Account upgraded to seller successfully. You now have both user and seller access.',
           token,
           user: {
             id: existingUser._id,
