@@ -33,7 +33,7 @@ router.get('/seller/my-products', auth, async (req, res) => {
     }
 
     const products = await Product.find(query)
-      .select('name description brand category subcategory basePrice sellingPrice stock images')
+      .select('name description brand category subcategory basePrice sellingPrice stock images gstNumber gstDocument')
       .limit(50)
       .sort({ createdAt: -1 })
       .lean();

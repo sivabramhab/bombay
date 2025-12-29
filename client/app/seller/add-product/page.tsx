@@ -220,24 +220,31 @@ export default function AddProductPage() {
       const response = await api.get(`/products/${product._id}`);
       const fullProduct = response.data;
       
+      // Debug: Log the full product data to check GST fields
+      console.log('Full Product Data:', fullProduct);
+      console.log('GST Number:', fullProduct.gstNumber);
+      console.log('GST Document:', fullProduct.gstDocument);
+      
       setSelectedProduct(fullProduct);
       setEditingProductId(product._id);
       
-      // Store original data for comparison
+      // Store original data for comparison - ensure GST fields are included
       const originalData = {
-        name: fullProduct.name,
-        description: fullProduct.description,
+        name: fullProduct.name || '',
+        description: fullProduct.description || '',
         category: fullProduct.category || '',
         subcategory: fullProduct.subcategory || '',
-        quantity: fullProduct.stock.toString(),
-        mrp: fullProduct.basePrice.toString(),
-        discount: fullProduct.priceDiscount?.toString() || '0',
-        bargainRange: fullProduct.minBargainPrice?.toString() || '',
+        quantity: (fullProduct.stock || 0).toString(),
+        mrp: (fullProduct.basePrice || 0).toString(),
+        discount: (fullProduct.priceDiscount || 0).toString(),
+        bargainRange: fullProduct.minBargainPrice ? fullProduct.minBargainPrice.toString() : '',
         warrantyDetails: fullProduct.warranty?.duration || '0',
         brand: fullProduct.brand || '',
         allowBargaining: fullProduct.allowBargaining || false,
         gstNumber: fullProduct.gstNumber || '',
       };
+      
+      console.log('Original Data with GST:', originalData);
       
       setOriginalProductData(originalData);
       
@@ -248,6 +255,7 @@ export default function AddProductPage() {
       if (fullProduct.gstDocument) {
         // Store the GST document filename for display
         const gstDocFileName = fullProduct.gstDocument;
+        console.log('GST Document Filename:', gstDocFileName);
         // Check if it's a PDF or image based on extension
         if (gstDocFileName.toLowerCase().endsWith('.pdf')) {
           setGstDocumentPreview('pdf');
@@ -259,6 +267,10 @@ export default function AddProductPage() {
       } else {
         setGstDocumentPreview(null);
       }
+      
+      // Verify form data after setting
+      console.log('Form Data after setting:', formData);
+      
       setSearchQuery(product.name);
       setSearchResults([]);
       setShowSearchResults(false);
