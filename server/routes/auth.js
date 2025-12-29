@@ -149,6 +149,18 @@ router.post('/register', [
 
     // Save user to database
     await user.save();
+    
+    // If registering as seller, create seller record
+    if (userType === 'seller') {
+      const Seller = require('../models/Seller');
+      const seller = new Seller({
+        userId: user._id,
+        businessName: name.trim() || 'My Business',
+        isCloseKnit: true,
+        verificationStatus: 'approved',
+      });
+      await seller.save();
+    }
 
     // OTP disabled - auto-verify mobile
     // Generate token immediately
