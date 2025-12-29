@@ -47,14 +47,40 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle token expiry
+// Handle token expiry - only redirect if not during initial auth check
+let isInitialAuthCheck = true;
+
+// Set initial auth check flag to false after a short delay (allows loadUser to complete)
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    isInitialAuthCheck = false;
+  }, 2000);
+}
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // After first successful response, we're past initial check
+    if (isInitialAuthCheck) {
+      isInitialAuthCheck = false;
+    }
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        // Only redirect to login if:
+        // 1. Not during initial auth check (page load/refresh)
+        // 2. The request was NOT to /auth/me (initial user load)
+        const isAuthMeRequest = error.config?.url?.includes('/auth/me');
+        
+        if (!isInitialAuthCheck && !isAuthMeRequest) {
+          // Token expired during active session - redirect to login
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        } else if (isAuthMeRequest) {
+          // Failed to load user during initial check - just clear token, don't redirect
+          localStorage.removeItem('token');
+        }
       }
     }
     return Promise.reject(error);

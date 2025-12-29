@@ -247,6 +247,7 @@ function NavbarContent() {
                 className="relative"
                 onMouseEnter={() => setShowUserMenu(true)}
                 onMouseLeave={() => setShowUserMenu(false)}
+                style={{ zIndex: 100 }}
               >
                 <button 
                   className="flex items-center space-x-1 text-gray-700 hover:text-blue-600"
@@ -257,34 +258,51 @@ function NavbarContent() {
                   <span className="hidden md:inline">▼</span>
                 </button>
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                  <div 
+                    className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-[100] border border-gray-200"
+                    style={{ pointerEvents: 'auto' }}
+                  >
                     <Link 
                       href="/profile" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setShowUserMenu(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowUserMenu(false);
+                      }}
+                      style={{ pointerEvents: 'auto' }}
                     >
                       My Profile
                     </Link>
                     <Link 
                       href="/orders" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setShowUserMenu(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowUserMenu(false);
+                      }}
+                      style={{ pointerEvents: 'auto' }}
                     >
                       My Orders
                     </Link>
                     <Link 
                       href="/wishlist" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setShowUserMenu(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowUserMenu(false);
+                      }}
+                      style={{ pointerEvents: 'auto' }}
                     >
                       Wishlist
                     </Link>
                     <button 
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setShowUserMenu(false);
                         logout();
                       }} 
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
+                      style={{ pointerEvents: 'auto' }}
                     >
                       Logout
                     </button>
