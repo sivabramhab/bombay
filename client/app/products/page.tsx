@@ -52,6 +52,21 @@ function ProductsContent() {
     { value: 'grocery', label: 'Grocery' },
   ];
 
+  // Update filters when URL params change
+  useEffect(() => {
+    const searchQuery = searchParams.get('search') || '';
+    const categoryQuery = searchParams.get('category') || '';
+    const bargainingQuery = searchParams.get('allowBargaining') || '';
+    
+    setFilters(prev => ({
+      ...prev,
+      search: searchQuery,
+      category: categoryQuery,
+      allowBargaining: bargainingQuery,
+    }));
+    setPage(1); // Reset to first page when search changes
+  }, [searchParams]);
+
   useEffect(() => {
     fetchProducts();
   }, [filters, page]);
