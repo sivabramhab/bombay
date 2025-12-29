@@ -27,19 +27,26 @@ interface Product {
 
 function ProductsContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({
-    search: searchParams.get('search') || '',
-    category: searchParams.get('category') || '',
-    allowBargaining: searchParams.get('allowBargaining') || '',
+  
+  // Helper to get URL params
+  const getUrlParams = () => ({
+    search: searchParams?.get('search') || '',
+    category: searchParams?.get('category') || '',
+    allowBargaining: searchParams?.get('allowBargaining') || '',
+  });
+  
+  const [filters, setFilters] = useState(() => ({
+    ...getUrlParams(),
     minPrice: '',
     maxPrice: '',
     sortBy: 'createdAt',
     sortOrder: 'desc',
-  });
+  }));
 
   const categories = [
     { value: '', label: 'All Categories' },
@@ -53,19 +60,27 @@ function ProductsContent() {
     { value: 'grocery', label: 'Grocery' },
   ];
 
-  // Update filters when URL params change
+  // Update filters when URL params change - this ensures we catch navigation from homepage
   useEffect(() => {
-    const searchQuery = searchParams.get('search') || '';
-    const categoryQuery = searchParams.get('category') || '';
-    const bargainingQuery = searchParams.get('allowBargaining') || '';
+    const urlParams = getUrlParams();
     
-    setFilters(prev => ({
-      ...prev,
-      search: searchQuery,
-      category: categoryQuery,
-      allowBargaining: bargainingQuery,
-    }));
-    setPage(1); // Reset to first page when search changes
+    setFilters(prev => {
+      // Check if category actually changed
+      const categoryChanged = prev.category !== urlParams.category;
+      const searchChanged = prev.search !== urlParams.search;
+      
+      // If category or search changed, reset page
+      if (categoryChanged || searchChanged) {
+        setPage(1);
+      }
+      
+      return {
+        ...prev,
+        search: urlParams.search,
+        category: urlParams.category,
+        allowBargaining: urlParams.allowBargaining,
+      };
+    });
   }, [searchParams]);
 
   useEffect(() => {
