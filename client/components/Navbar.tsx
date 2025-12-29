@@ -13,7 +13,9 @@ function NavbarContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Initialize search query from URL if on products page
   useEffect(() => {
@@ -25,6 +27,23 @@ function NavbarContent() {
   useEffect(() => {
     loadUser();
   }, [loadUser]);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   // Auto-search when user types 3+ characters
   useEffect(() => {
@@ -223,18 +242,54 @@ function NavbarContent() {
             {isLoading ? (
               <div className="text-gray-500">Loading...</div>
             ) : isAuthenticated ? (
-              <div className="relative group">
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+              <div 
+                ref={userMenuRef}
+                className="relative"
+                onMouseEnter={() => setShowUserMenu(true)}
+                onMouseLeave={() => setShowUserMenu(false)}
+              >
+                <button 
+                  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                >
                   <span className="text-xl">👤</span>
                   <span className="hidden md:inline">{user?.name?.split(' ')[0]}</span>
                   <span className="hidden md:inline">▼</span>
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
-                  <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</Link>
-                  <Link href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Orders</Link>
-                  <Link href="/wishlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Wishlist</Link>
-                  <button onClick={logout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</button>
-                </div>
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <Link 
+                      href="/profile" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      My Profile
+                    </Link>
+                    <Link 
+                      href="/orders" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      My Orders
+                    </Link>
+                    <Link 
+                      href="/wishlist" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Wishlist
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        logout();
+                      }} 
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <Link
