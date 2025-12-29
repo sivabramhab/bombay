@@ -58,6 +58,24 @@ export default function RegisterPage() {
     } catch (error: any) {
       console.error('Registration error:', error);
       console.error('Error response:', error.response);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        isNetworkError: error.isNetworkError,
+        config: error.config,
+      });
+      
+      // Handle network errors specifically
+      if (error.isNetworkError || !error.response) {
+        const networkMessage = error.message || 'Cannot connect to server. Please ensure the server is running on port 5000.';
+        toast.error(networkMessage);
+        console.error('Network Error Details:', {
+          API_URL: typeof window !== 'undefined' ? (window as any).API_URL : 'N/A',
+          error: error.originalError || error,
+        });
+        return;
+      }
+      
       const errorMessage = error.response?.data?.message 
         || error.response?.data?.error 
         || error.message 
