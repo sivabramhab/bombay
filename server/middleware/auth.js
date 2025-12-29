@@ -13,12 +13,18 @@ const auth = async (req, res, next) => {
     const user = await User.findById(decoded.userId).select('-password');
     
     if (!user) {
+      console.error('Auth middleware: User not found for ID:', decoded.userId);
       return res.status(401).json({ message: 'User not found' });
     }
 
     req.user = user;
     next();
   } catch (error) {
+    console.error('Auth middleware error:', error);
+    // Don't throw DocumentNotFoundError - just return 401
+    if (error.name === 'DocumentNotFoundError') {
+      return res.status(401).json({ message: 'User not found' });
+    }
     res.status(401).json({ message: 'Token is not valid' });
   }
 };

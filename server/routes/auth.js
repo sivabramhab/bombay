@@ -437,8 +437,13 @@ router.post('/login', [
     }
 
     // Update last login timestamp
-    user.lastLogin = new Date();
-    await user.save();
+    try {
+      user.lastLogin = new Date();
+      await user.save();
+    } catch (saveError) {
+      console.error('Error updating last login:', saveError);
+      // Don't fail login if lastLogin update fails
+    }
 
     // Generate JWT token
     const token = generateToken(user._id);
@@ -507,13 +512,9 @@ router.get('/google/callback',
 // Get current user
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id)
-      .select('-password')
-      .populate({
-        path: 'addresses',
-        select: 'type street city state pincode landmark isDefault',
-      });
-
+    // Use req.user directly instead of querying again to avoid DocumentNotFoundError
+    // req.user is already populated by auth middleware
+    const user = req.user;
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -521,12 +522,23 @@ router.get('/me', auth, async (req, res) => {
       });
     }
 
+    // Return user data without password
+    const userData = user.toObject ? user.toObject() : user;
+    delete userData.password;
+
     res.json({
       success: true,
-      data: user,
+      ...userData,
     });
   } catch (error) {
     console.error('Get current user error:', error);
+    // Handle DocumentNotFoundError gracefully
+    if (error.name === 'DocumentNotFoundError') {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
     res.status(500).json({ 
       success: false,
       message: 'Server error',
