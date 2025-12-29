@@ -190,26 +190,6 @@ router.post('/register', [
       console.error('Error saving user:', saveError);
       throw saveError; // Re-throw to be caught by outer catch block
     }
-
-    // OTP disabled - auto-verify mobile
-    // Generate token immediately
-    const token = generateToken(user._id);
-
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        mobile: user.mobile,
-        role: user.role,
-        userType: user.userType,
-        mobileVerified: user.mobileVerified,
-        isSeller: user.isSeller,
-      },
-    });
   } catch (error) {
     console.error('Registration error:', error);
     
