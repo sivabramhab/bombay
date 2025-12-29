@@ -192,33 +192,41 @@ router.post('/register', [
     }
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Error stack:', error.stack);
     
-    // Handle duplicate key error
+    // Handle duplicate key error (MongoDB duplicate key)
     if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
+      const field = Object.keys(error.keyPattern || {})[0] || 'field';
       return res.status(400).json({
         success: false,
-        message: `User with this ${field} already exists`,
+        message: `User with this ${field} already exists. Please login instead.`,
       });
     }
-
+    
     // Handle validation errors
     if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map(err => ({
-        field: err.path,
-        message: err.message,
-      }));
+      const messages = Object.values(error.errors || {}).map((err: any) => err.message);
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
-        errors,
+        errors: messages,
       });
     }
-
-    res.status(500).json({ 
+    
+    // Handle document not found (shouldn't happen during creation, but handle it)
+    if (error.name === 'DocumentNotFoundError') {
+      console.error('DocumentNotFoundError during registration - possible database sync issue');
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred during registration. Please try again.',
+      });
+    }
+    
+    // Generic error response
+    res.status(500).json({
       success: false,
-      message: 'Server error during registration',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+      message: 'Server error during registration. Please try again.',
+      error: process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'production' ? error.message : 'Internal server error',
     });
   }
 });
