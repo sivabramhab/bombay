@@ -68,6 +68,31 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Handle network errors (no response from server)
+    if (!error.response) {
+      console.error('Network Error - No response from server:', {
+        message: error.message,
+        code: error.code,
+        config: {
+          url: error.config?.url,
+          baseURL: error.config?.baseURL,
+          method: error.config?.method,
+        },
+      });
+      
+      // Create a more informative error
+      const networkError = new Error(
+        error.code === 'ECONNREFUSED'
+          ? 'Cannot connect to server. Please ensure the server is running.'
+          : error.code === 'ETIMEDOUT'
+          ? 'Request timed out. Please check your internet connection.'
+          : 'Network error. Please check your connection and try again.'
+      );
+      (networkError as any).isNetworkError = true;
+      (networkError as any).originalError = error;
+      return Promise.reject(networkError);
+    }
+    
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         // Only redirect to login if:
