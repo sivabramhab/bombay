@@ -22,6 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const data = await authService.login({ email, password });
       set({ user: data.user, isAuthenticated: true, isLoading: false });
+      return data;
       return data; // Return data so login page can access user info
     } catch (error) {
       set({ isLoading: false });
