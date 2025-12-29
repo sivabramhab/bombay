@@ -4,7 +4,7 @@ const fs = require('fs');
 
 // Define upload directory - Windows path for local, Linux path for EC2
 const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.platform === 'win32' 
-  ? 'C:\\Users\\user\\Desktop\\Bella\\images' 
+  ? 'C:\\Users\\user\\Desktop\\Bella\\images'
   : '/home/ubuntu/bombay-marketplace/uploads/images');
 
 // Create directory if it doesn't exist

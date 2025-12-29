@@ -24,7 +24,7 @@ app.use(passport.initialize());
 
 // Serve static files from uploads directory
 const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.platform === 'win32' 
-  ? path.join(__dirname, '..', '..', 'C:', 'Users', 'user', 'Desktop', 'Bella', 'images')
+  ? 'C:\\Users\\user\\Desktop\\Bella\\images'
   : '/home/ubuntu/bombay-marketplace/uploads/images');
 
 // Create uploads directory if it doesn't exist
