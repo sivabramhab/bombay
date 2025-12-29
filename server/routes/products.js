@@ -240,19 +240,19 @@ router.post('/create', auth, upload.fields([{ name: 'files', maxCount: 10 }, { n
     const imageUrls = [];
     let gstDocumentName = null;
     
-    if (req.files && req.files.length > 0) {
-      // Check if there's a field name to identify file types
-      // Files with fieldname 'files' are product images/videos
-      // Files with fieldname 'gstDocument' are GST documents
-      req.files.forEach((file) => {
-        if (file.fieldname === 'gstDocument') {
-          // Store GST document filename
-          gstDocumentName = file.filename;
-        } else {
-          // Store product image/video filename
+    // Handle files uploaded via upload.fields() - req.files is an object
+    if (req.files) {
+      // Process product images/videos (fieldname 'files')
+      if (req.files['files'] && Array.isArray(req.files['files'])) {
+        req.files['files'].forEach((file) => {
           imageUrls.push(file.filename);
-        }
-      });
+        });
+      }
+      
+      // Process GST document (fieldname 'gstDocument')
+      if (req.files['gstDocument'] && Array.isArray(req.files['gstDocument']) && req.files['gstDocument'].length > 0) {
+        gstDocumentName = req.files['gstDocument'][0].filename;
+      }
     }
 
     // Parse warranty if it's a string
