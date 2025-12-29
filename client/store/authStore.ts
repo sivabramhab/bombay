@@ -30,7 +30,15 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   register: async (data) => {
     try {
-      await authService.register(data);
+      const response = await authService.register(data);
+      // If registration returns token and user, update state
+      if (response.token && response.user) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('token', response.token);
+        }
+        set({ user: response.user, isAuthenticated: true, isLoading: false });
+      }
+      return response;
     } catch (error) {
       throw error;
     }

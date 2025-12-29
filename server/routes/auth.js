@@ -82,7 +82,7 @@ router.post('/register', [
       password: password,
       name: name.trim(),
       mobile: mobile.trim(),
-      mobileVerified: false,
+      mobileVerified: true, // Auto-verify - OTP disabled
       userType: userType === 'seller' ? 'seller' : 'user',
       role: userType === 'seller' ? 'seller' : 'buyer',
       isSeller: userType === 'seller',
@@ -96,14 +96,18 @@ router.post('/register', [
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully. Please verify mobile OTP.',
-      data: {
-        userId: user._id,
-        email: user.email,
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: user._id,
         name: user.name,
+        email: user.email,
         mobile: user.mobile,
+        role: user.role,
+        userType: user.userType,
+        mobileVerified: user.mobileVerified,
+        isSeller: user.isSeller,
       },
-      otpSent: otpResult.success,
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -185,7 +189,7 @@ router.post('/verify-otp', [
       });
     }
 
-    // Update user verification status
+    // OTP verification disabled - auto-verify and update user
     user.mobileVerified = true;
     await user.save();
 
@@ -194,7 +198,7 @@ router.post('/verify-otp', [
 
     res.json({
       success: true,
-      message: 'Mobile verified successfully',
+      message: 'Registration successful',
       token,
       user: {
         id: user._id,
@@ -206,7 +210,6 @@ router.post('/verify-otp', [
         mobileVerified: user.mobileVerified,
         isSeller: user.isSeller,
       },
-      redirectTo: user.userType === 'seller' ? '/seller/add-product' : '/',
     });
   } catch (error) {
     console.error('OTP verification error:', error);

@@ -26,8 +26,24 @@ export default function RegisterPage() {
 
     try {
       await register({ ...formData, userType: formData.userType });
-      toast.success('Registration successful! Please verify OTP.');
-      setStep(2);
+      toast.success('Registration successful!');
+      
+      // Auto-verify and redirect - OTP disabled
+      // Load user after registration
+      await useAuthStore.getState().loadUser();
+      const currentUser = useAuthStore.getState().user;
+      
+      // Check if user has both user and seller capabilities
+      if (currentUser?.isSeller && currentUser?.userType === 'user') {
+        // Show dialog to choose page
+        setShowDialog(true);
+      } else if (currentUser?.isSeller || currentUser?.userType === 'seller') {
+        // Only seller, go to seller page
+        router.push('/seller/add-product');
+      } else {
+        // Only user, go to home
+        router.push('/');
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Registration failed');
     } finally {
@@ -35,37 +51,16 @@ export default function RegisterPage() {
     }
   };
 
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const response: any = await verifyOTP(formData.mobile, otp);
-      toast.success('Mobile verified successfully!');
-      
-      // Redirect based on userType
-      if (response?.user?.userType === 'seller' || formData.userType === 'seller') {
-        router.push('/seller/add-product');
-      } else {
-        router.push('/');
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'OTP verification failed');
-    } finally {
-      setIsLoading(false);
+  const handleDialogSelect = (choice: 'user' | 'seller') => {
+    setShowDialog(false);
+    if (choice === 'seller') {
+      router.push('/seller/add-product');
+    } else {
+      router.push('/');
     }
   };
 
-  const handleResendOTP = async () => {
-    try {
-      await resendOTP(formData.mobile);
-      toast.success('OTP resent successfully!');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to resend OTP');
-    }
-  };
-
-  if (step === 2) {
+  if (false) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ 
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

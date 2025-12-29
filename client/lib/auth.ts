@@ -18,7 +18,10 @@ export interface AuthResponse {
 
 export const authService = {
   register: async (data: { email: string; password: string; name: string; mobile: string; userType?: string }) => {
-    const response = await api.post('/auth/register', data);
+    const response = await api.post<AuthResponse>('/auth/register', data);
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
     return response.data;
   },
 

@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
+import UserSellerDialog from '@/components/UserSellerDialog';
 
 function AuthCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { loadUser } = useAuthStore();
+  const { loadUser, user } = useAuthStore();
+  const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -20,11 +22,18 @@ function AuthCallbackContent() {
       
       // Load user data
       loadUser().then(() => {
-        if (mobileVerified === 'true') {
-          toast.success('Login successful!');
-          router.push('/');
+        toast.success('Login successful!');
+        
+        // Check if user has both user and seller capabilities
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser?.isSeller && currentUser?.userType === 'user') {
+          // Show dialog to choose page
+          setShowDialog(true);
+        } else if (currentUser?.isSeller || currentUser?.userType === 'seller') {
+          // Only seller, go to seller page
+          router.push('/seller/add-product');
         } else {
-          toast.success('Login successful! Please verify your mobile number.');
+          // Only user, go to home
           router.push('/');
         }
       }).catch(() => {
@@ -37,13 +46,25 @@ function AuthCallbackContent() {
     }
   }, [searchParams, router, loadUser]);
 
+  const handleDialogSelect = (choice: 'user' | 'seller') => {
+    setShowDialog(false);
+    if (choice === 'seller') {
+      router.push('/seller/add-product');
+    } else {
+      router.push('/');
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Completing authentication...</p>
+    <>
+      {showDialog && <UserSellerDialog onSelect={handleDialogSelect} />}
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Completing authentication...</p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

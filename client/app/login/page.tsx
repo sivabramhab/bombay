@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import UserSellerDialog from '@/components/UserSellerDialog';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuthStore();
+  const [showDialog, setShowDialog] = useState(false);
+  const { login, user } = useAuthStore();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,11 +22,33 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success('Login successful!');
-      router.push('/');
+      
+      // Check if user has both user and seller capabilities
+      // User has both if: userType is 'user' AND isSeller is true
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser?.isSeller && currentUser?.userType === 'user') {
+        // Show dialog to choose page
+        setShowDialog(true);
+      } else if (currentUser?.isSeller || currentUser?.userType === 'seller') {
+        // Only seller, go to seller page
+        router.push('/seller/add-product');
+      } else {
+        // Only user, go to home
+        router.push('/');
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Login failed');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDialogSelect = (choice: 'user' | 'seller') => {
+    setShowDialog(false);
+    if (choice === 'seller') {
+      router.push('/seller/add-product');
+    } else {
+      router.push('/');
     }
   };
 
@@ -36,7 +60,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ 
+    <>
+      {showDialog && <UserSellerDialog onSelect={handleDialogSelect} />}
+      <div className="min-h-screen flex items-center justify-center" style={{ 
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '40px 16px'
     }}>
@@ -212,6 +238,7 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+    </>
   );
 }
 
