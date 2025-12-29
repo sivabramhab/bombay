@@ -1114,7 +1114,15 @@ export default function AddProductPage() {
                     min="0"
                     step="0.01"
                     value={formData.bargainRange}
-                    onChange={(e) => setFormData({ ...formData, bargainRange: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Automatically check allowBargaining when bargainRange has a value
+                      setFormData({ 
+                        ...formData, 
+                        bargainRange: value,
+                        allowBargaining: value.trim() !== '' || formData.allowBargaining
+                      });
+                    }}
                     placeholder="Min price"
                     style={{
                       width: '100%',
