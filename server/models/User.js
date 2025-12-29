@@ -84,8 +84,11 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-  // Only hash password if it's been modified (or is new)
+  // Only hash password if it's been modified (or is new) AND password exists
   if (!this.isModified('password')) return next();
+  
+  // Skip hashing if password is empty/undefined (e.g., Google OAuth users)
+  if (!this.password) return next();
   
   try {
     // Hash password with cost of 10
