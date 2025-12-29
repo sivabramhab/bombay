@@ -68,11 +68,11 @@ export default function CartPage() {
   const getProductImage = (item: { id: string; image?: string }) => {
     // Try stored image first
     if (item.image && !imageErrors[item.id]) {
-      return item.image;
+      return getProductImageUrl(item.image);
     }
     // Try fetched product image
     if (productImages[item.id]) {
-      return productImages[item.id];
+      return getProductImageUrl(productImages[item.id]);
     }
     // Return null to show placeholder
     return null;
