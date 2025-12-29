@@ -1564,7 +1564,7 @@ export default function AddProductPage() {
               <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
                 <button
                   type="submit"
-                  disabled={loading || (isEditMode && editingProductId && !hasChanges)}
+                  disabled={!!(loading || (isEditMode && editingProductId && !hasChanges))}
                   style={{
                     flex: 1,
                     padding: '14px 24px',
