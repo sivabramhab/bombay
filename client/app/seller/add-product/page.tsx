@@ -220,11 +220,6 @@ export default function AddProductPage() {
       const response = await api.get(`/products/${product._id}`);
       const fullProduct = response.data;
       
-      // Debug: Log the full product data to check GST fields
-      console.log('Full Product Data:', fullProduct);
-      console.log('GST Number:', fullProduct.gstNumber);
-      console.log('GST Document:', fullProduct.gstDocument);
-      
       setSelectedProduct(fullProduct);
       setEditingProductId(product._id);
       
