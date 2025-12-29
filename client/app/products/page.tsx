@@ -121,7 +121,9 @@ function ProductsContent() {
           <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
             {filters.search && filters.search.length >= 3 
               ? `Search Results for "${filters.search}"` 
-              : 'All Products'}
+              : filters.category 
+                ? `${categories.find(c => c.value === filters.category)?.label || filters.category} Products`
+                : 'All Products'}
           </h1>
           <p style={{ fontSize: '14px', opacity: 0.95 }}>
             {loading ? (

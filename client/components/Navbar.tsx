@@ -85,8 +85,19 @@ function NavbarContent() {
     }
   };
 
+  // Categories to display horizontally
+  const categories = [
+    { name: 'Electronics', value: 'electronics', icon: '📱' },
+    { name: 'Fashion', value: 'clothing', icon: '👕' },
+    { name: 'Home', value: 'home', icon: '🏠' },
+    { name: 'Books', value: 'books', icon: '📚' },
+    { name: 'Sports', value: 'sports', icon: '⚽' },
+    { name: 'Beauty', value: 'beauty', icon: '💄' },
+    { name: 'Toys', value: 'toys', icon: '🎲' },
+    { name: 'Grocery', value: 'grocery', icon: '🛒' },
+  ];
+
   const navLinks = [
-    { href: '/products', label: 'Products', icon: '📦' },
     { href: '/challenges', label: 'Challenges', icon: '🎯' },
   ];
 
@@ -321,20 +332,38 @@ function NavbarContent() {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="flex items-center space-x-6 py-2 border-t border-gray-200">
+        <div className="flex items-center space-x-4 py-2 border-t border-gray-200 overflow-x-auto">
           <Link
             href="/"
-            className={`px-3 py-2 text-sm font-medium ${
+            className={`px-3 py-2 text-sm font-medium whitespace-nowrap flex items-center gap-1 ${
               pathname === '/' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700 hover:text-blue-600'
             }`}
           >
-            Home
+            <span>🏠</span>
+            <span>Home</span>
           </Link>
+          {categories.map((category) => {
+            const isActive = pathname === '/products' && searchParams?.get('category') === category.value;
+            return (
+              <Link
+                key={category.value}
+                href={`/products?category=${category.value}`}
+                className={`px-3 py-2 text-sm font-medium whitespace-nowrap flex items-center gap-1 transition-colors ${
+                  isActive
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
+                <span>{category.icon}</span>
+                <span>{category.name}</span>
+              </Link>
+            );
+          })}
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`px-3 py-2 text-sm font-medium flex items-center gap-1 ${
+              className={`px-3 py-2 text-sm font-medium whitespace-nowrap flex items-center gap-1 ${
                 pathname === link.href
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-700 hover:text-blue-600'
