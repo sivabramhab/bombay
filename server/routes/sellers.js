@@ -44,41 +44,74 @@ router.post('/register', auth, [
     await seller.save();
 
     // Update user to have both user and seller capabilities
-    // Keep original userType as 'user' to maintain user (buyer) access
-    // Set isSeller = true to enable seller capabilities
-    // This allows them to be BOTH user (buyer) AND seller
-    req.user.isSeller = true;
-    req.user.role = 'seller'; // Update role to seller for seller permissions
+    // First, fetch the full user document to ensure we have a Mongoose document
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
+    }
+    
+    // Update user fields
+    user.isSeller = true;
+    user.role = 'seller'; // Update role to seller for seller permissions
     
     // IMPORTANT: Keep userType as 'user' so they can still perform user/buyer activities
     // If userType was already 'seller', keep it; if 'user', keep it as 'user'
     // This way they have both capabilities
-    if (req.user.userType === 'user') {
+    if (user.userType === 'user') {
       // Keep userType as 'user' - they remain both user and seller
       // userType stays 'user', but isSeller = true and role = 'seller'
-    } else if (!req.user.userType) {
-      req.user.userType = 'user'; // Default to user if not set
+    } else if (!user.userType) {
+      user.userType = 'user'; // Default to user if not set
     }
     // If userType is already 'seller', it remains 'seller' but now they also have isSeller = true
     
-    await req.user.save();
+    await user.save();
 
     res.status(201).json({
       success: true,
       message: 'Seller registration submitted successfully. You now have both user and seller access.',
       seller,
       user: {
-        id: req.user._id,
-        name: req.user.name,
-        email: req.user.email,
-        userType: req.user.userType,
-        role: req.user.role,
-        isSeller: req.user.isSeller,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        mobile: user.mobile,
+        userType: user.userType,
+        role: user.role,
+        isSeller: user.isSeller,
       },
     });
   } catch (error) {
     console.error('Seller registration error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error stack:', error.stack);
+    
+    // Handle duplicate key error
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || 'field';
+      return res.status(400).json({
+        success: false,
+        message: `Seller with this ${field} already exists`,
+      });
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors || {}).map((err: any) => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: messages,
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during seller registration. Please try again.',
+      error: process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'production' ? error.message : 'Internal server error',
+    });
   }
 });
 

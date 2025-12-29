@@ -151,18 +151,44 @@ router.post('/register', [
     });
 
     // Save user to database
-    await user.save();
-    
-    // If registering as seller, create seller record
-    if (userType === 'seller') {
-      const Seller = require('../models/Seller');
-      const seller = new Seller({
-        userId: user._id,
-        businessName: name.trim() || 'My Business',
-        isCloseKnit: true,
-        verificationStatus: 'approved',
+    try {
+      const savedUser = await user.save();
+      console.log('User saved successfully:', savedUser._id);
+      
+      // If registering as seller, create seller record
+      if (userType === 'seller') {
+        const Seller = require('../models/Seller');
+        const seller = new Seller({
+          userId: savedUser._id,
+          businessName: name.trim() || 'My Business',
+          isCloseKnit: true,
+          verificationStatus: 'approved',
+        });
+        await seller.save();
+        console.log('Seller record created for user:', savedUser._id);
+      }
+      
+      // Generate token using saved user ID
+      const token = generateToken(savedUser._id);
+
+      return res.status(201).json({
+        success: true,
+        message: 'User registered successfully',
+        token,
+        user: {
+          id: savedUser._id,
+          name: savedUser.name,
+          email: savedUser.email,
+          mobile: savedUser.mobile,
+          role: savedUser.role,
+          userType: savedUser.userType,
+          mobileVerified: savedUser.mobileVerified,
+          isSeller: savedUser.isSeller,
+        },
       });
-      await seller.save();
+    } catch (saveError) {
+      console.error('Error saving user:', saveError);
+      throw saveError; // Re-throw to be caught by outer catch block
     }
 
     // OTP disabled - auto-verify mobile
