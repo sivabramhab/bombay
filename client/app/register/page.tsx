@@ -13,6 +13,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     mobile: '',
+    userType: 'user', // 'user' or 'seller'
   });
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +25,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await register(formData);
+      await register({ ...formData, userType: formData.userType });
       toast.success('Registration successful! Please verify OTP.');
       setStep(2);
     } catch (error: any) {
@@ -39,9 +40,15 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await verifyOTP(formData.mobile, otp);
+      const response = await verifyOTP(formData.mobile, otp);
       toast.success('Mobile verified successfully!');
-      router.push('/');
+      
+      // Redirect based on userType
+      if (response?.user?.userType === 'seller' || formData.userType === 'seller') {
+        router.push('/seller/add-product');
+      } else {
+        router.push('/');
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'OTP verification failed');
     } finally {
@@ -189,6 +196,55 @@ export default function RegisterPage() {
           }}>
             Join us and start saving today
           </p>
+          
+          {/* User Type Toggle */}
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '24px',
+            padding: '8px',
+            backgroundColor: '#f3f4f6',
+            borderRadius: '8px'
+          }}>
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, userType: 'user' })}
+              style={{
+                flex: 1,
+                padding: '12px',
+                borderRadius: '6px',
+                border: 'none',
+                fontWeight: '600',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                backgroundColor: formData.userType === 'user' ? '#2874f0' : 'transparent',
+                color: formData.userType === 'user' ? 'white' : '#6b7280',
+                boxShadow: formData.userType === 'user' ? '0 2px 4px rgba(40,116,240,0.3)' : 'none'
+              }}
+            >
+              👤 User
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, userType: 'seller' })}
+              style={{
+                flex: 1,
+                padding: '12px',
+                borderRadius: '6px',
+                border: 'none',
+                fontWeight: '600',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                backgroundColor: formData.userType === 'seller' ? '#2874f0' : 'transparent',
+                color: formData.userType === 'seller' ? 'white' : '#6b7280',
+                boxShadow: formData.userType === 'seller' ? '0 2px 4px rgba(40,116,240,0.3)' : 'none'
+              }}
+            >
+              🏪 Seller
+            </button>
+          </div>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleRegister}>
           <div className="space-y-4">

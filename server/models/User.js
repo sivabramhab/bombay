@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema({
     enum: ['buyer', 'seller', 'verifier', 'admin'],
     default: 'buyer',
   },
+  userType: {
+    type: String,
+    enum: ['user', 'seller'],
+    default: 'user',
+  },
   isSeller: {
     type: Boolean,
     default: false,

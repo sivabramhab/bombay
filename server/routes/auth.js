@@ -51,7 +51,7 @@ router.post('/register', [
       });
     }
 
-    const { email, password, name, mobile } = req.body;
+    const { email, password, name, mobile, userType = 'user' } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -83,8 +83,9 @@ router.post('/register', [
       name: name.trim(),
       mobile: mobile.trim(),
       mobileVerified: false,
-      role: 'buyer',
-      isSeller: false,
+      userType: userType === 'seller' ? 'seller' : 'user',
+      role: userType === 'seller' ? 'seller' : 'buyer',
+      isSeller: userType === 'seller',
     });
 
     // Save user to database
@@ -201,9 +202,11 @@ router.post('/verify-otp', [
         email: user.email,
         mobile: user.mobile,
         role: user.role,
+        userType: user.userType,
         mobileVerified: user.mobileVerified,
         isSeller: user.isSeller,
       },
+      redirectTo: user.userType === 'seller' ? '/seller/add-product' : '/',
     });
   } catch (error) {
     console.error('OTP verification error:', error);

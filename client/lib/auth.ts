@@ -7,6 +7,7 @@ export interface User {
   email: string;
   mobile: string;
   role: string;
+  userType?: string;
   mobileVerified: boolean;
 }
 
@@ -16,7 +17,7 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  register: async (data: { email: string; password: string; name: string; mobile: string }) => {
+  register: async (data: { email: string; password: string; name: string; mobile: string; userType?: string }) => {
     const response = await api.post('/auth/register', data);
     return response.data;
   },

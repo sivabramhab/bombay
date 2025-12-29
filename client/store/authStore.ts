@@ -40,6 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const data = await authService.verifyOTP({ mobile, otp });
       set({ user: data.user, isAuthenticated: true, isLoading: false });
+      return data; // Return data for redirect logic
     } catch (error) {
       throw error;
     }

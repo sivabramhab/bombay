@@ -154,7 +154,117 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create product (seller only)
+// Create product with file upload (seller only)
+router.post('/create', auth, upload.array('files', 10), async (req, res) => {
+  try {
+    // Check if user is a seller
+    if (req.user.userType !== 'seller' && req.user.role !== 'seller') {
+      return res.status(403).json({ message: 'Only sellers can create products' });
+    }
+
+    // Get or create seller
+    let seller = await Seller.findOne({ userId: req.user._id });
+    if (!seller) {
+      // Create seller record if doesn't exist
+      seller = new Seller({
+        userId: req.user._id,
+        businessName: req.user.name || 'My Business',
+        isCloseKnit: true,
+        verificationStatus: 'approved', // Auto-approve for userType sellers
+      });
+      await seller.save();
+    }
+
+    const {
+      name,
+      description,
+      category,
+      subcategory,
+      basePrice,
+      sellingPrice,
+      stock,
+      priceDiscount,
+      allowBargaining,
+      minBargainPrice,
+      brand,
+      warrantyDetails,
+      warranty,
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !description || !basePrice || !stock) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Process uploaded files
+    const imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((file) => {
+        // Store filename (same name as saved in folder - original filename)
+        imageUrls.push(file.filename);
+      });
+    }
+
+    // Parse warranty if it's a string
+    let warrantyObj = {};
+    if (warranty) {
+      try {
+        warrantyObj = typeof warranty === 'string' ? JSON.parse(warranty) : warranty;
+      } catch (e) {
+        warrantyObj = {
+          hasWarranty: parseFloat(warrantyDetails) > 0,
+          duration: warrantyDetails || '0',
+          type: 'seller'
+        };
+      }
+    } else {
+      warrantyObj = {
+        hasWarranty: parseFloat(warrantyDetails || '0') > 0,
+        duration: warrantyDetails || '0',
+        type: 'seller'
+      };
+    }
+
+    // Calculate discount if not provided
+    const discount = priceDiscount ? parseFloat(priceDiscount) : 
+      ((parseFloat(basePrice) - parseFloat(sellingPrice || basePrice)) / parseFloat(basePrice)) * 100;
+
+    const product = new Product({
+      sellerId: seller._id,
+      name: name.trim(),
+      description: description.trim(),
+      category: category || 'general',
+      subcategory: subcategory || '',
+      images: imageUrls,
+      basePrice: parseFloat(basePrice),
+      sellingPrice: parseFloat(sellingPrice || basePrice),
+      priceDiscount: discount,
+      allowBargaining: allowBargaining === 'true' || allowBargaining === true,
+      minBargainPrice: minBargainPrice ? parseFloat(minBargainPrice) : undefined,
+      stock: parseInt(stock),
+      brand: brand || '',
+      warranty: warrantyObj,
+      tags: [],
+      isActive: true,
+    });
+
+    await product.save();
+    res.status(201).json({ 
+      success: true,
+      message: 'Product created successfully', 
+      product 
+    });
+  } catch (error) {
+    console.error('Create product error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error', 
+      error: error.message 
+    });
+  }
+});
+
+// Create product (seller only) - Original endpoint kept for backward compatibility
 router.post('/', auth, authorize('seller'), [
   body('name').trim().notEmpty(),
   body('description').trim().notEmpty(),
