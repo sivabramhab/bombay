@@ -25,14 +25,19 @@ export default function LoginPage() {
       
       // Check if user has both user and seller capabilities
       const currentUser = data?.user || useAuthStore.getState().user;
-      if (currentUser?.isSeller && currentUser?.userType === 'user') {
-        // Show dialog to choose page - user has both capabilities
-        setShowDialog(true);
-      } else if (currentUser?.isSeller || currentUser?.userType === 'seller') {
-        // Only seller, go to seller page
+      
+      // Priority: 1. If userType is 'seller' -> go to seller page
+      //           2. If isSeller is true AND userType is 'user' -> show dialog
+      //           3. Otherwise -> go to home
+      
+      if (currentUser?.userType === 'seller') {
+        // User is a seller - go directly to seller page
         router.push('/seller/add-product');
+      } else if (currentUser?.isSeller && currentUser?.userType === 'user') {
+        // User has both capabilities - show dialog to choose
+        setShowDialog(true);
       } else {
-        // Only user, go to home
+        // Only user - go to home
         router.push('/');
       }
     } catch (error: any) {

@@ -25,23 +25,25 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await register({ ...formData, userType: formData.userType });
+      const response: any = await register({ ...formData, userType: formData.userType });
       toast.success('Registration successful!');
       
-      // Auto-verify and redirect - OTP disabled
-      // Load user after registration
-      await useAuthStore.getState().loadUser();
-      const currentUser = useAuthStore.getState().user;
+      // Get user data from registration response
+      const currentUser = response?.user || useAuthStore.getState().user;
       
-      // Check if user has both user and seller capabilities
-      if (currentUser?.isSeller && currentUser?.userType === 'user') {
-        // Show dialog to choose page
-        setShowDialog(true);
-      } else if (currentUser?.isSeller || currentUser?.userType === 'seller') {
-        // Only seller, go to seller page
+      // Check routing based on userType and isSeller
+      // Priority: 1. If userType is 'seller' -> go to seller page
+      //           2. If isSeller is true AND userType is 'user' -> show dialog
+      //           3. Otherwise -> go to home
+      
+      if (currentUser?.userType === 'seller') {
+        // User registered as seller - go directly to seller page
         router.push('/seller/add-product');
+      } else if (currentUser?.isSeller && currentUser?.userType === 'user') {
+        // User has both capabilities - show dialog to choose
+        setShowDialog(true);
       } else {
-        // Only user, go to home
+        // Only user - go to home
         router.push('/');
       }
     } catch (error: any) {
