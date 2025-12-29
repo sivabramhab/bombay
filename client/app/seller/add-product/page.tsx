@@ -1374,20 +1374,6 @@ export default function AddProductPage() {
                             Remove
                           </button>
                         </div>
-                      ) : gstDocumentPreview === 'existing' ? (
-                        <div style={{
-                          padding: '12px',
-                          backgroundColor: '#10b981',
-                          color: 'white',
-                          borderRadius: '8px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          fontSize: '14px'
-                        }}>
-                          <span>📄</span>
-                          <span>Existing GST Document</span>
-                        </div>
                       ) : (
                         <div style={{ position: 'relative', display: 'inline-block' }}>
                           <img
