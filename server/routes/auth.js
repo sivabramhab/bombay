@@ -223,10 +223,16 @@ router.post('/register', [
     }
     
     // Generic error response
+    console.error('Registration error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+    });
     res.status(500).json({
       success: false,
       message: 'Server error during registration. Please try again.',
-      error: process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'production' ? error.message : 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
     });
   }
 });
