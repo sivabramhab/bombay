@@ -1388,7 +1388,7 @@ export default function AddProductPage() {
                             </button>
                           )}
                         </div>
-                      ) : gstDocumentPreview ? (
+                      ) : gstDocumentPreview && gstDocumentPreview !== 'pdf' ? (
                         <div style={{ position: 'relative', display: 'inline-block' }}>
                           <img
                             src={gstDocumentPreview}
@@ -1424,7 +1424,7 @@ export default function AddProductPage() {
                             ×
                           </button>
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   )}
                   <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
