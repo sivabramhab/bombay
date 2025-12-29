@@ -43,14 +43,38 @@ router.post('/register', auth, [
 
     await seller.save();
 
-    // Update user role
+    // Update user to have both user and seller capabilities
+    // Keep original userType as 'user' to maintain user (buyer) access
+    // Set isSeller = true to enable seller capabilities
+    // This allows them to be BOTH user (buyer) AND seller
     req.user.isSeller = true;
-    req.user.role = 'seller';
+    req.user.role = 'seller'; // Update role to seller for seller permissions
+    
+    // IMPORTANT: Keep userType as 'user' so they can still perform user/buyer activities
+    // If userType was already 'seller', keep it; if 'user', keep it as 'user'
+    // This way they have both capabilities
+    if (req.user.userType === 'user') {
+      // Keep userType as 'user' - they remain both user and seller
+      // userType stays 'user', but isSeller = true and role = 'seller'
+    } else if (!req.user.userType) {
+      req.user.userType = 'user'; // Default to user if not set
+    }
+    // If userType is already 'seller', it remains 'seller' but now they also have isSeller = true
+    
     await req.user.save();
 
     res.status(201).json({
-      message: 'Seller registration submitted successfully',
+      success: true,
+      message: 'Seller registration submitted successfully. You now have both user and seller access.',
       seller,
+      user: {
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        userType: req.user.userType,
+        role: req.user.role,
+        isSeller: req.user.isSeller,
+      },
     });
   } catch (error) {
     console.error('Seller registration error:', error);

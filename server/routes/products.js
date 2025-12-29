@@ -158,9 +158,10 @@ router.get('/:id', async (req, res) => {
 // Create product with file upload (seller only)
 router.post('/create', auth, upload.array('files', 10), async (req, res) => {
   try {
-    // Check if user is a seller
-    if (req.user.userType !== 'seller' && req.user.role !== 'seller') {
-      return res.status(403).json({ message: 'Only sellers can create products' });
+    // Check if user is a seller (check isSeller flag first, then role/userType)
+    // Users who converted to sellers will have isSeller = true
+    if (!req.user.isSeller && req.user.role !== 'seller' && req.user.userType !== 'seller') {
+      return res.status(403).json({ message: 'Only sellers can create products. Please register as a seller first.' });
     }
 
     // Get or create seller

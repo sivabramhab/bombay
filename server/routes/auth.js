@@ -331,6 +331,7 @@ router.post('/login', [
         email: user.email,
         mobile: user.mobile,
         role: user.role,
+        userType: user.userType,
         mobileVerified: user.mobileVerified,
         isSeller: user.isSeller,
       },

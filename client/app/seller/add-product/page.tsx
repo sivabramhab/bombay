@@ -36,11 +36,11 @@ export default function AddProductPage() {
         router.push('/login');
         return;
       }
-      // Allow access if userType is seller or role is seller
-      if (user?.userType === 'seller' || user?.role === 'seller') {
+      // Allow access if user is a seller (check isSeller flag, role, or userType)
+      if (user?.isSeller || user?.userType === 'seller' || user?.role === 'seller') {
         setIsReady(true);
       } else {
-        toast.error('Only sellers can access this page');
+        toast.error('Only sellers can access this page. Please register as a seller first.');
         router.push('/');
       }
     }
