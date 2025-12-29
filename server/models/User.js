@@ -105,6 +105,14 @@ userSchema.index({ mobile: 1 });
 userSchema.index({ googleId: 1 });
 
 userSchema.methods.comparePassword = async function(candidatePassword) {
+  // If user has no password (e.g., Google OAuth user), return false
+  if (!this.password) {
+    return false;
+  }
+  // If candidate password is empty, return false
+  if (!candidatePassword) {
+    return false;
+  }
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
