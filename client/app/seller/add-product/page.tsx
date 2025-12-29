@@ -171,6 +171,7 @@ export default function AddProductPage() {
       warrantyDetails: '',
       brand: '',
       allowBargaining: false,
+      gstNumber: '',
     });
     setFiles([]);
     setPreviews([]);
