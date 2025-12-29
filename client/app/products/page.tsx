@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
@@ -85,15 +85,22 @@ function ProductsContent() {
 
   useEffect(() => {
     fetchProducts();
-  }, [filters, page]);
+  }, [filters.category, filters.search, filters.allowBargaining, filters.minPrice, filters.maxPrice, filters.sortBy, filters.sortOrder, page]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
+      
+      // Always read directly from URL params to ensure we have the latest values
+      // This is crucial when navigating from homepage - searchParams updates immediately
+      const currentCategory = searchParams?.get('category') || filters.category;
+      const currentSearch = searchParams?.get('search') || filters.search;
+      const currentBargaining = searchParams?.get('allowBargaining') || filters.allowBargaining;
+      
       const params = new URLSearchParams();
-      if (filters.search) params.append('search', filters.search);
-      if (filters.category) params.append('category', filters.category);
-      if (filters.allowBargaining) params.append('allowBargaining', filters.allowBargaining);
+      if (currentSearch) params.append('search', currentSearch);
+      if (currentCategory) params.append('category', currentCategory);
+      if (currentBargaining) params.append('allowBargaining', currentBargaining);
       if (filters.minPrice) params.append('minPrice', filters.minPrice);
       if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
       params.append('sortBy', filters.sortBy);
