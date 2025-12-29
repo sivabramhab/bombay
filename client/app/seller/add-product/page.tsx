@@ -236,8 +236,16 @@ export default function AddProductPage() {
         warrantyDetails: fullProduct.warranty?.duration || '0',
         brand: fullProduct.brand || '',
         allowBargaining: fullProduct.allowBargaining || false,
-        gstNumber: fullProduct.gstNumber || '',
+        gstNumber: (fullProduct.gstNumber && fullProduct.gstNumber.trim()) || '',
       };
+      
+      // Debug: Verify GST data is present
+      if (fullProduct.gstNumber || fullProduct.gstDocument) {
+        console.log('GST Data found:', {
+          gstNumber: fullProduct.gstNumber,
+          gstDocument: fullProduct.gstDocument
+        });
+      }
       
       setOriginalProductData(originalData);
       
