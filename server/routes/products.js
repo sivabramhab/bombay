@@ -4,6 +4,7 @@ const { body, validationResult } = require('express-validator');
 const { auth, authorize } = require('../middleware/auth');
 const Product = require('../models/Product');
 const Seller = require('../models/Seller');
+const upload = require('../config/multer');
 
 const router = express.Router();
 
