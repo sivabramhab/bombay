@@ -59,19 +59,78 @@ router.post('/register', [
         { email: email.toLowerCase().trim() },
         { mobile: mobile.trim() }
       ],
-    });
+    }).select('+password'); // Include password for verification
 
+    // If user exists and trying to register as seller
+    if (existingUser && userType === 'seller') {
+      // Verify password matches
+      const isPasswordMatch = await existingUser.comparePassword(password);
+      
+      if (isPasswordMatch) {
+        // Password matches - upgrade user to seller
+        // Check if seller record exists
+        const Seller = require('../models/Seller');
+        let seller = await Seller.findOne({ userId: existingUser._id });
+        
+        if (!seller) {
+          // Create seller record
+          seller = new Seller({
+            userId: existingUser._id,
+            businessName: name.trim() || existingUser.name || 'My Business',
+            isCloseKnit: true,
+            verificationStatus: 'approved',
+          });
+          await seller.save();
+        }
+        
+        // Update user to have seller capabilities
+        existingUser.isSeller = true;
+        existingUser.role = 'seller';
+        // Keep userType as 'user' so they remain both user and seller
+        if (!existingUser.userType || existingUser.userType === 'user') {
+          existingUser.userType = 'user'; // Keep as user for dual capabilities
+        }
+        await existingUser.save();
+        
+        // Generate token
+        const token = generateToken(existingUser._id);
+        
+        return res.status(200).json({
+          success: true,
+          message: 'Account upgraded to seller successfully. You now have both user and seller access.',
+          token,
+          user: {
+            id: existingUser._id,
+            name: existingUser.name,
+            email: existingUser.email,
+            mobile: existingUser.mobile,
+            role: existingUser.role,
+            userType: existingUser.userType,
+            mobileVerified: existingUser.mobileVerified,
+            isSeller: existingUser.isSeller,
+          },
+        });
+      } else {
+        // Password doesn't match
+        return res.status(401).json({ 
+          success: false,
+          message: 'Invalid password. Please use your existing password to upgrade to seller.',
+        });
+      }
+    }
+
+    // If user exists and NOT trying to upgrade to seller, return error
     if (existingUser) {
       if (existingUser.email === email.toLowerCase().trim()) {
         return res.status(400).json({ 
           success: false,
-          message: 'User with this email already exists',
+          message: 'User with this email already exists. Please login instead.',
         });
       }
       if (existingUser.mobile === mobile.trim()) {
         return res.status(400).json({ 
           success: false,
-          message: 'User with this mobile number already exists',
+          message: 'User with this mobile number already exists. Please login instead.',
         });
       }
     }
