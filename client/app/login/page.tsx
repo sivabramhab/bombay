@@ -20,14 +20,13 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      const data: any = await login(email, password);
       toast.success('Login successful!');
       
       // Check if user has both user and seller capabilities
-      // User has both if: userType is 'user' AND isSeller is true
-      const currentUser = useAuthStore.getState().user;
+      const currentUser = data?.user || useAuthStore.getState().user;
       if (currentUser?.isSeller && currentUser?.userType === 'user') {
-        // Show dialog to choose page
+        // Show dialog to choose page - user has both capabilities
         setShowDialog(true);
       } else if (currentUser?.isSeller || currentUser?.userType === 'seller') {
         // Only seller, go to seller page
