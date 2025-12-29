@@ -239,8 +239,6 @@ export default function AddProductPage() {
         gstNumber: fullProduct.gstNumber || '',
       };
       
-      console.log('Original Data with GST:', originalData);
-      
       setOriginalProductData(originalData);
       
       // Populate form with product data
@@ -250,7 +248,6 @@ export default function AddProductPage() {
       if (fullProduct.gstDocument) {
         // Store the GST document filename for display
         const gstDocFileName = fullProduct.gstDocument;
-        console.log('GST Document Filename:', gstDocFileName);
         // Check if it's a PDF or image based on extension
         if (gstDocFileName.toLowerCase().endsWith('.pdf')) {
           setGstDocumentPreview('pdf');
@@ -261,10 +258,8 @@ export default function AddProductPage() {
         }
       } else {
         setGstDocumentPreview(null);
+        setGstDocument(null);
       }
-      
-      // Verify form data after setting
-      console.log('Form Data after setting:', formData);
       
       setSearchQuery(product.name);
       setSearchResults([]);
