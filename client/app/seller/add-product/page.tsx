@@ -1117,10 +1117,12 @@ export default function AddProductPage() {
                     onChange={(e) => {
                       const value = e.target.value;
                       // Automatically check allowBargaining when bargainRange has a value
+                      // Automatically uncheck when bargainRange is cleared
+                      const hasValue = value.trim() !== '';
                       setFormData({ 
                         ...formData, 
                         bargainRange: value,
-                        allowBargaining: value.trim() !== '' || formData.allowBargaining
+                        allowBargaining: hasValue
                       });
                     }}
                     placeholder="Min price"
