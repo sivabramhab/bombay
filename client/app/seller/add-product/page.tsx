@@ -1195,7 +1195,6 @@ export default function AddProductPage() {
               </div>
             </div>
           </form>
-        )}
       </div>
     </div>
   );
