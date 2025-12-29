@@ -1342,12 +1342,12 @@ export default function AddProductPage() {
                       e.currentTarget.style.boxShadow = 'none';
                     }}
                   />
-                  {gstDocumentPreview && (
+                  {(gstDocumentPreview || (selectedProduct && selectedProduct.gstDocument)) && (
                     <div style={{ marginTop: '12px', position: 'relative', display: 'inline-block' }}>
-                      {gstDocumentPreview === 'pdf' ? (
+                      {(gstDocumentPreview === 'pdf' || (selectedProduct?.gstDocument && selectedProduct.gstDocument.toLowerCase().endsWith('.pdf'))) ? (
                         <div style={{
                           padding: '12px',
-                          backgroundColor: '#dc2626',
+                          backgroundColor: gstDocument ? '#dc2626' : '#10b981',
                           color: 'white',
                           borderRadius: '8px',
                           display: 'flex',
@@ -1356,23 +1356,25 @@ export default function AddProductPage() {
                           fontSize: '14px'
                         }}>
                           <span>📄</span>
-                          <span>{gstDocument?.name || 'GST Document.pdf'}</span>
-                          <button
-                            type="button"
-                            onClick={removeGstDocument}
-                            style={{
-                              marginLeft: '8px',
-                              backgroundColor: 'rgba(255,255,255,0.2)',
-                              border: 'none',
-                              borderRadius: '4px',
-                              color: 'white',
-                              padding: '4px 8px',
-                              cursor: 'pointer',
-                              fontSize: '12px'
-                            }}
-                          >
-                            Remove
-                          </button>
+                          <span>{gstDocument?.name || selectedProduct?.gstDocument || 'GST Document.pdf'}</span>
+                          {(gstDocument || (selectedProduct && selectedProduct.gstDocument)) && (
+                            <button
+                              type="button"
+                              onClick={removeGstDocument}
+                              style={{
+                                marginLeft: '8px',
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                border: 'none',
+                                borderRadius: '4px',
+                                color: 'white',
+                                padding: '4px 8px',
+                                cursor: 'pointer',
+                                fontSize: '12px'
+                              }}
+                            >
+                              Remove
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <div style={{ position: 'relative', display: 'inline-block' }}>
