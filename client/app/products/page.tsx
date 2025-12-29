@@ -52,7 +52,7 @@ function ProductsContent() {
     { value: '', label: 'All Categories' },
     { value: 'electronics', label: 'Electronics' },
     { value: 'clothing', label: 'Fashion & Clothing' },
-    { value: 'home', label: 'Home & Living' },
+    { value: 'home', label: 'Home Appliances' },
     { value: 'books', label: 'Books' },
     { value: 'sports', label: 'Sports & Fitness' },
     { value: 'beauty', label: 'Beauty & Personal Care' },

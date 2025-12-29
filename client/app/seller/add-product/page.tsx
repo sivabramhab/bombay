@@ -448,7 +448,7 @@ export default function AddProductPage() {
   const categories = [
     { value: 'electronics', label: 'Electronics' },
     { value: 'fashion', label: 'Fashion & Clothing' },
-    { value: 'home-living', label: 'Home & Living' },
+    { value: 'home-living', label: 'Home Appliances' },
     { value: 'books', label: 'Books' },
     { value: 'sports', label: 'Sports & Fitness' },
     { value: 'beauty', label: 'Beauty & Personal Care' },

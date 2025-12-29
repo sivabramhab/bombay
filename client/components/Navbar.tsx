@@ -89,7 +89,7 @@ function NavbarContent() {
   const categories = [
     { name: 'Electronics', value: 'electronics', icon: '📱' },
     { name: 'Fashion', value: 'clothing', icon: '👕' },
-    { name: 'Home', value: 'home', icon: '🏠' },
+    { name: 'Home Appliances', value: 'home', icon: '🏠' },
     { name: 'Books', value: 'books', icon: '📚' },
     { name: 'Sports', value: 'sports', icon: '⚽' },
     { name: 'Beauty', value: 'beauty', icon: '💄' },
