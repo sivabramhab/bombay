@@ -93,9 +93,9 @@ export default function AddProductPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Search products when query changes (3+ characters)
+  // Search products when query changes (3+ characters) - in edit mode only when no product selected
   useEffect(() => {
-    if (searchQuery.trim().length >= 3 && isEditMode) {
+    if (searchQuery.trim().length >= 3 && isEditMode && !editingProductId) {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
@@ -103,8 +103,9 @@ export default function AddProductPage() {
       searchTimeoutRef.current = setTimeout(async () => {
         try {
           const response = await api.get(`/products/seller/my-products?search=${encodeURIComponent(searchQuery.trim())}`);
-          setSearchResults(response.data.products || []);
-          setShowSearchResults(true);
+          const products = response.data.products || [];
+          setSearchResults(products);
+          setShowSearchResults(products.length > 0);
         } catch (error: any) {
           console.error('Search error:', error);
           setSearchResults([]);
@@ -121,7 +122,7 @@ export default function AddProductPage() {
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [searchQuery, isEditMode]);
+  }, [searchQuery, isEditMode, editingProductId]);
 
   const resetForm = () => {
     setFormData({
@@ -148,11 +149,26 @@ export default function AddProductPage() {
 
   const handleEditMode = () => {
     setIsEditMode(true);
-    resetForm();
-    // Focus search input after a short delay
-    setTimeout(() => {
-      searchInputRef.current?.focus();
-    }, 100);
+    // Clear form but keep edit mode
+    setFormData({
+      name: '',
+      description: '',
+      category: '',
+      subcategory: '',
+      quantity: '',
+      mrp: '',
+      discount: '',
+      bargainRange: '',
+      warrantyDetails: '',
+      brand: '',
+      allowBargaining: false,
+    });
+    setFiles([]);
+    setPreviews([]);
+    setEditingProductId(null);
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearchResults(false);
   };
 
   const handleCancelEdit = () => {
@@ -177,19 +193,11 @@ export default function AddProductPage() {
     });
     setEditingProductId(product._id);
     setSearchQuery(product.name);
+    setSearchResults([]);
     setShowSearchResults(false);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-
-    // If search is cleared while in edit mode and we had a product selected, clear the form
-    if (value.trim().length === 0 && editingProductId) {
-      resetForm();
-      setIsEditMode(true);
-    }
-  };
+  // Removed handleSearchChange - now handled directly in Product Title onChange
 
   const handleAddNewProduct = () => {
     setShowAddNewDialog(false);
@@ -419,138 +427,6 @@ export default function AddProductPage() {
           </p>
         </div>
 
-        {/* Edit Mode: Product Search */}
-        {isEditMode && (
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '24px',
-            marginBottom: '24px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-          }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '8px'
-            }}>
-              Search Your Products
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                placeholder="Enter at least 3 characters to search..."
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  transition: 'all 0.2s'
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#2874f0';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(40,116,240,0.1)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
-              {showSearchResults && searchResults.length > 0 && (
-                <div
-                  ref={searchResultsRef}
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: 0,
-                    marginTop: '8px',
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    maxHeight: '300px',
-                    overflowY: 'auto',
-                    zIndex: 1000
-                  }}
-                >
-                  {searchResults.map((product) => (
-                    <div
-                      key={product._id}
-                      onClick={() => handleProductSelect(product)}
-                      style={{
-                        padding: '12px 16px',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid #f3f4f6',
-                        transition: 'background-color 0.2s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#f9fafb';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'white';
-                      }}
-                    >
-                      <div style={{ fontWeight: '600', color: '#1f2937', marginBottom: '4px' }}>
-                        {product.name}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                        {product.brand && `${product.brand} • `}₹{product.sellingPrice}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {searchQuery.trim().length >= 3 && searchResults.length === 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  marginTop: '8px',
-                  padding: '16px',
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  zIndex: 1000
-                }}>
-                  <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '12px' }}>
-                    No products found. Would you like to add a new product?
-                  </p>
-                  <button
-                    onClick={handleAddNewProduct}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: '#2874f0',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      width: '100%'
-                    }}
-                  >
-                    Add New Product
-                  </button>
-                </div>
-              )}
-            </div>
-            {searchQuery.trim().length > 0 && searchQuery.trim().length < 3 && (
-              <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
-                Type at least 3 characters to search
-              </p>
-            )}
-          </div>
-        )}
-
         {/* Add New Product Dialog */}
         {showAddNewDialog && (
           <div style={{
@@ -621,8 +497,13 @@ export default function AddProductPage() {
           </div>
         )}
 
-        {/* Form */}
-        {(!isEditMode || editingProductId) && (
+        {/* Form - Always visible */}
+        <form onSubmit={handleSubmit} style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '32px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
           <form onSubmit={handleSubmit} style={{
             backgroundColor: 'white',
             borderRadius: '12px',
@@ -630,8 +511,8 @@ export default function AddProductPage() {
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
           }}>
             <div style={{ display: 'grid', gap: '24px' }}>
-              {/* Product Title */}
-              <div>
+              {/* Product Title with Search in Edit Mode */}
+              <div style={{ position: 'relative' }}>
                 <label style={{
                   display: 'block',
                   fontSize: '14px',
@@ -640,13 +521,29 @@ export default function AddProductPage() {
                   marginBottom: '8px'
                 }}>
                   Product Title <span style={{ color: '#dc2626' }}>*</span>
+                  {isEditMode && !editingProductId && (
+                    <span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280', marginLeft: '8px' }}>
+                      (Type 3+ characters to search your products)
+                    </span>
+                  )}
                 </label>
                 <input
+                  ref={isEditMode ? searchInputRef : undefined}
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Samsung Galaxy S23 Ultra"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData({ ...formData, name: value });
+                    // In edit mode, also update search query for autocomplete
+                    if (isEditMode && !editingProductId) {
+                      setSearchQuery(value);
+                    }
+                  }}
+                  placeholder={isEditMode && !editingProductId 
+                    ? "Type at least 3 characters to search your products..." 
+                    : "e.g., Samsung Galaxy S23 Ultra"
+                  }
                   style={{
                     width: '100%',
                     padding: '12px 16px',
@@ -665,6 +562,74 @@ export default function AddProductPage() {
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 />
+                
+                {/* Search Results Dropdown - Show when in edit mode and typing */}
+                {isEditMode && !editingProductId && showSearchResults && searchResults.length > 0 && (
+                  <div
+                    ref={searchResultsRef}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      marginTop: '8px',
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      maxHeight: '300px',
+                      overflowY: 'auto',
+                      zIndex: 1000
+                    }}
+                  >
+                    {searchResults.map((product) => (
+                      <div
+                        key={product._id}
+                        onClick={() => handleProductSelect(product)}
+                        style={{
+                          padding: '12px 16px',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #f3f4f6',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f9fafb';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'white';
+                        }}
+                      >
+                        <div style={{ fontWeight: '600', color: '#1f2937', marginBottom: '4px' }}>
+                          {product.name}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                          {product.brand && `${product.brand} • `}₹{product.sellingPrice}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* No Results Message */}
+                {isEditMode && !editingProductId && formData.name.trim().length >= 3 && searchResults.length === 0 && !showSearchResults && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    marginTop: '8px',
+                    padding: '16px',
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    zIndex: 1000
+                  }}>
+                    <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '12px' }}>
+                      No products found. Continue typing to create a new product.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Product Description */}
