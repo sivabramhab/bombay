@@ -3,24 +3,66 @@
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export default function Navbar() {
   const { user, isAuthenticated, isLoading, logout, loadUser } = useAuthStore();
   const { totalItems } = useCartStore();
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Initialize search query from URL if on products page
+  useEffect(() => {
+    if (pathname === '/products' && searchParams.get('search')) {
+      setSearchQuery(searchParams.get('search') || '');
+    }
+  }, [pathname, searchParams]);
 
   useEffect(() => {
     loadUser();
   }, [loadUser]);
 
+  // Auto-search when user types 3+ characters
+  useEffect(() => {
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    const trimmedQuery = searchQuery.trim();
+
+    // Only search if query has 3+ characters
+    if (trimmedQuery.length >= 3) {
+      // Debounce: wait 500ms after user stops typing
+      debounceTimer.current = setTimeout(() => {
+        // Navigate to products page with search query
+        router.push(`/products?search=${encodeURIComponent(trimmedQuery)}`);
+      }, 500);
+    } else if (trimmedQuery.length === 0 && pathname === '/products') {
+      // If search is cleared, navigate to products page without search param
+      router.push('/products');
+    }
+
+    // Cleanup timer on unmount or when searchQuery changes
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [searchQuery, router, pathname]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery.length >= 3) {
+      router.push(`/products?search=${encodeURIComponent(trimmedQuery)}`);
+    } else if (trimmedQuery.length > 0) {
+      // If less than 3 characters, show message or do nothing
+      // You could add a toast notification here
     }
   };
 
@@ -107,6 +149,12 @@ export default function Navbar() {
                   fontSize: '14px',
                   outline: 'none'
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch(e);
+                  }
+                }}
               />
               <button
                 type="submit"
@@ -139,10 +187,22 @@ export default function Navbar() {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
-            {/* Mobile Search */}
-            <button className="md:hidden text-gray-700">
-              🔍
-            </button>
+            {/* Mobile Search - Show search input on mobile */}
+            <div className="md:hidden relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                className="w-32 sm:w-40 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch(e);
+                  }
+                }}
+              />
+            </div>
 
             {/* Cart Icon */}
             <Link href="/cart" className="relative text-gray-700 hover:text-blue-600 transition">

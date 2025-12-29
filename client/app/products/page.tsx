@@ -103,11 +103,26 @@ function ProductsContent() {
           color: 'white'
         }}>
           <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
-            {filters.search ? `Search Results for "${filters.search}"` : 'All Products'}
+            {filters.search && filters.search.length >= 3 
+              ? `Search Results for "${filters.search}"` 
+              : 'All Products'}
           </h1>
           <p style={{ fontSize: '14px', opacity: 0.95 }}>
-            {total} {total === 1 ? 'product' : 'products'} found {filters.category && `in ${categories.find(c => c.value === filters.category)?.label}`}
+            {loading ? (
+              'Searching...'
+            ) : (
+              <>
+                {total} {total === 1 ? 'product' : 'products'} found
+                {filters.search && filters.search.length >= 3 && ` for "${filters.search}"`}
+                {filters.category && ` in ${categories.find(c => c.value === filters.category)?.label}`}
+              </>
+            )}
           </p>
+          {filters.search && filters.search.length > 0 && filters.search.length < 3 && (
+            <p style={{ fontSize: '12px', opacity: 0.8, marginTop: '8px', color: '#f59e0b' }}>
+              Type at least 3 characters to search
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
