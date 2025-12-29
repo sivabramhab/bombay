@@ -12,8 +12,11 @@ export interface User {
 }
 
 export interface AuthResponse {
+  success?: boolean;
+  message?: string;
   token: string;
   user: User;
+  errors?: string[];
 }
 
 export const authService = {
