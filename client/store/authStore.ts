@@ -35,14 +35,20 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await authService.register(data);
       console.log('AuthStore: Registration response:', response);
       
-      // If registration returns token and user, update state
-      if (response && response.token && response.user) {
+      // Check if response indicates success (success field can be true, undefined, or missing, but not false)
+      if (response && (response.success !== false) && response.token && response.user) {
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', response.token);
         }
         set({ user: response.user, isAuthenticated: true, isLoading: false });
+        return response;
+      } else {
+        // Response indicates failure
+        const error = new Error(response?.message || 'Registration failed');
+        (error as any).response = { data: response };
+        set({ isLoading: false });
+        throw error;
       }
-      return response;
     } catch (error: any) {
       console.error('AuthStore: Registration error:', error);
       console.error('AuthStore: Error response:', error.response?.data);
