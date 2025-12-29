@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
+import { getProductImageUrl } from '@/lib/imageUtils';
 
 interface Product {
   _id: string;
@@ -109,9 +110,12 @@ export default function ProductDetailPage() {
               <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden mb-4">
                 {product.images && product.images.length > 0 ? (
                   <img
-                    src={product.images[0]}
+                    src={getProductImageUrl(product.images[0]) || ''}
                     alt={product.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE4IiBmaWxsPSIjOWNhM2FmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+U3RvcmU8L3RleHQ+PC9zdmc+';
+                    }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -124,9 +128,12 @@ export default function ProductDetailPage() {
                   {product.images.slice(1, 5).map((img, idx) => (
                     <img
                       key={idx}
-                      src={img}
+                      src={getProductImageUrl(img) || ''}
                       alt={`${product.name} ${idx + 2}`}
                       className="aspect-square object-cover rounded"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE4IiBmaWxsPSIjOWNhM2FmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+U3RvcmU8L3RleHQ+PC9zdmc+';
+                      }}
                     />
                   ))}
                 </div>

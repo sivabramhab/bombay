@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { getProductImageUrl } from '@/lib/imageUtils';
 
 // Helper function to get window width safely with state
 const useWindowWidth = () => {

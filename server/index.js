@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const passport = require('passport');
+const path = require('path');
+const fs = require('fs');
 
 dotenv.config();
 
@@ -13,6 +15,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
+
+// Serve static files from uploads directory
+const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.platform === 'win32' 
+  ? path.join(__dirname, '..', '..', 'C:', 'Users', 'user', 'Desktop', 'Bella', 'images')
+  : '/home/ubuntu/bombay-marketplace/uploads/images');
+
+// Create uploads directory if it doesn't exist
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
+// Serve static files from uploads directory
+app.use('/uploads/images', express.static(UPLOAD_DIR));
 
 // Database connection
 const connectDB = require('./config/db');

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
+import { getProductImageUrl } from '@/lib/imageUtils';
 
 interface Product {
   _id: string;
@@ -316,7 +317,7 @@ function ProductsContent() {
                       price={product.sellingPrice}
                       originalPrice={product.basePrice}
                       discount={product.priceDiscount}
-                      image={product.images?.[0]}
+                      image={product.images?.[0] ? getProductImageUrl(product.images[0]) || product.images[0] : undefined}
                       seller={product.sellerId?.businessName}
                       allowBargaining={product.allowBargaining}
                       rating={product.rating?.average || 0}

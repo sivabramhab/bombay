@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
 import { useEffect, useState } from 'react';
+import { getProductImageUrl } from '@/lib/imageUtils';
 
 // Helper function to get window width safely
 const getWindowWidth = () => {
@@ -101,7 +102,7 @@ export default function ProductCard({
         >
           {image ? (
             <img
-              src={image}
+              src={getProductImageUrl(image) || ''}
               alt={name}
               className="product-image"
               style={{

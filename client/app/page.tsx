@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import Footer from '@/components/Footer';
+import { getProductImageUrl } from '@/lib/imageUtils';
 
 interface Product {
   _id: string;
@@ -472,7 +473,7 @@ export default function Home() {
                   price={product.sellingPrice}
                   originalPrice={product.basePrice}
                   discount={product.priceDiscount}
-                  image={product.images?.[0]}
+                  image={product.images?.[0] ? getProductImageUrl(product.images[0]) || product.images[0] : undefined}
                   seller={product.sellerId?.businessName}
                   allowBargaining={product.allowBargaining}
                   rating={product.rating?.average || 0}
@@ -507,7 +508,7 @@ export default function Home() {
                   price={product.sellingPrice}
                   originalPrice={product.basePrice}
                   discount={product.priceDiscount}
-                  image={product.images?.[0]}
+                  image={product.images?.[0] ? getProductImageUrl(product.images[0]) || product.images[0] : undefined}
                   seller={product.sellerId?.businessName}
                   allowBargaining={product.allowBargaining}
                   rating={product.rating?.average || 0}
@@ -547,7 +548,7 @@ export default function Home() {
                   price={product.sellingPrice}
                   originalPrice={product.basePrice}
                   discount={product.priceDiscount}
-                  image={product.images?.[0]}
+                  image={product.images?.[0] ? getProductImageUrl(product.images[0]) || product.images[0] : undefined}
                   seller={product.sellerId?.businessName}
                   allowBargaining={product.allowBargaining}
                   rating={product.rating?.average || 0}
