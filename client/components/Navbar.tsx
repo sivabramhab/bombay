@@ -99,10 +99,6 @@ function NavbarContent() {
 
   const navLinks: Array<{ href: string; label: string; icon: string }> = [];
 
-  if (isAuthenticated && user?.isSeller) {
-    navLinks.push({ href: '/seller/dashboard', label: 'Seller', icon: '🏪' });
-  }
-
   if (isAuthenticated && (user?.role === 'admin' || user?.role === 'verifier')) {
     navLinks.push({ href: '/admin', label: 'Admin', icon: '⚙️' });
   }
