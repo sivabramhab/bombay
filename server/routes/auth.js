@@ -152,26 +152,34 @@ router.post('/register', [
 
     // Save user to database
     try {
+      console.log('Attempting to save user to database...');
       const savedUser = await user.save();
       console.log('User saved successfully:', savedUser._id);
       
       // If registering as seller, create seller record
       if (userType === 'seller') {
-        const Seller = require('../models/Seller');
-        const seller = new Seller({
-          userId: savedUser._id,
-          businessName: name.trim() || 'My Business',
-          isCloseKnit: true,
-          verificationStatus: 'approved',
-        });
-        await seller.save();
-        console.log('Seller record created for user:', savedUser._id);
+        try {
+          const Seller = require('../models/Seller');
+          const seller = new Seller({
+            userId: savedUser._id,
+            businessName: name.trim() || 'My Business',
+            isCloseKnit: true,
+            verificationStatus: 'approved',
+          });
+          await seller.save();
+          console.log('Seller record created for user:', savedUser._id);
+        } catch (sellerError) {
+          console.error('Error creating seller record:', sellerError);
+          // Don't fail registration if seller record creation fails - user is already saved
+          // Log the error but continue with user registration
+        }
       }
       
       // Generate token using saved user ID
       const token = generateToken(savedUser._id);
+      console.log('Token generated for user:', savedUser._id);
 
-      return res.status(201).json({
+      const response = {
         success: true,
         message: 'User registered successfully',
         token,
@@ -185,9 +193,18 @@ router.post('/register', [
           mobileVerified: savedUser.mobileVerified,
           isSeller: savedUser.isSeller,
         },
-      });
+      };
+      
+      console.log('Sending successful registration response');
+      return res.status(201).json(response);
     } catch (saveError) {
       console.error('Error saving user:', saveError);
+      console.error('Save error details:', {
+        message: saveError.message,
+        name: saveError.name,
+        code: saveError.code,
+        stack: saveError.stack,
+      });
       throw saveError; // Re-throw to be caught by outer catch block
     }
   } catch (error) {

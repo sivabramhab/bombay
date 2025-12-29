@@ -105,15 +105,22 @@ userSchema.index({ mobile: 1 });
 userSchema.index({ googleId: 1 });
 
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  // If user has no password (e.g., Google OAuth user), return false
-  if (!this.password) {
+  try {
+    // If user has no password (e.g., Google OAuth user), return false
+    if (!this.password) {
+      console.warn('comparePassword: User has no password set');
+      return false;
+    }
+    // If candidate password is empty, return false
+    if (!candidatePassword) {
+      console.warn('comparePassword: Candidate password is empty');
+      return false;
+    }
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    console.error('Error comparing password:', error);
     return false;
   }
-  // If candidate password is empty, return false
-  if (!candidatePassword) {
-    return false;
-  }
-  return await bcrypt.compare(candidatePassword, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema);
